@@ -4,598 +4,350 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>我们的恋爱小窝 💕</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
-:root {
-  --cream: #FFF5F0; --blush: #FFE5D9; --pink-light: #FFCAD4;
-  --pink: #F4ACB7; --pink-mid: #F098A8; --rose: #D4788A;
-  --mauve: #9D8189; --text: #4A3040; --text-light: #8E6E7A;
-  --white: #FFFFFF;
-  --shadow-sm: 0 2px 10px rgba(244,172,183,0.1);
-  --shadow-md: 0 6px 20px rgba(244,172,183,0.15);
-  --shadow-lg: 0 12px 36px rgba(154,120,130,0.15);
-  --radius-sm: 14px; --radius-xs: 10px;
-}
 *{margin:0;padding:0;box-sizing:border-box}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;
-  background:radial-gradient(ellipse at 30% 20%,#FFF5F0 30%,#FFE8E0 60%,#FFE0D6 100%);
-  color:var(--text);height:100vh;overflow:hidden;
-  user-select:none;-webkit-user-select:none;
-}
-/* ===== Top Nav ===== */
-.top-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(255,255,255,0.94);border-bottom:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px}
-.nav-brand{display:flex;align-items:center;gap:8px}
-.nav-logo{width:32px;height:32px;background:linear-gradient(135deg,#F4ACB7,#E8879B);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 8px rgba(232,135,155,0.25)}
-.nav-title{font-size:14px;font-weight:700;background:linear-gradient(135deg,#E8879B,#C87080);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.nav-tabs{display:flex;gap:0}
-.nav-tab{padding:7px 12px;border:none;background:transparent;border-radius:18px;font-size:12px;font-family:inherit;color:var(--text-light);cursor:pointer;transition:color 0.15s,background 0.15s;display:flex;align-items:center;gap:4px;white-space:nowrap}
-.nav-tab:hover{color:var(--pink);background:rgba(244,172,183,0.06)}
-.nav-tab.active{color:var(--white);background:linear-gradient(135deg,#F4ACB7,#E8879B);font-weight:600;box-shadow:0 2px 8px rgba(232,135,155,0.2)}
-.nav-cd{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#FFF0F3,#FFE5D9);border-radius:16px;padding:4px 12px;font-size:11px;color:var(--rose);cursor:pointer;border:1px solid rgba(244,172,183,0.12);transition:transform 0.15s}
-.nav-cd:hover{transform:scale(1.03)}
-.nav-cd b{font-size:14px;color:var(--pink-mid)}
-.sync-status{font-size:10px;margin-left:4px}
-.sync-status.online{color:#5cb85c}.sync-status.offline{color:var(--mauve)}
-@media(max-width:768px){.nav-tab span.tab-label{display:none}.nav-tab{padding:7px 10px;font-size:16px}.nav-title{display:none}}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:#FFF5F0;color:#4A3040;height:100vh;overflow:hidden}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:1000;background:#fff;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:50px}
+.topbar .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
+.topbar .dot{width:8px;height:8px;border-radius:50%;margin-right:2px}
+.topbar .dot.g{background:#4CAF50}.topbar .dot.r{background:#ccc}.topbar .dot.y{background:#FF9800}
+.topbar .tabs{display:flex;gap:0}
+.topbar .tabs button{padding:7px 12px;border:none;background:none;border-radius:16px;font-size:12px;font-family:inherit;color:#888;cursor:pointer;transition:all 0.15s}
+.topbar .tabs button:hover{color:#E8879B;background:rgba(244,172,183,0.06)}
+.topbar .tabs button.on{color:#fff;background:linear-gradient(135deg,#F4ACB7,#E8879B);font-weight:600}
+.topbar .tabs button em{font-style:normal}@media(max-width:768px){.topbar .tabs button em{display:none}.topbar .tabs button{padding:7px 8px;font-size:16px}}
+.main{display:flex;height:100vh;padding-top:50px}
+.page{display:none;flex:1;overflow-y:auto;overflow-x:hidden}
+.page.show{display:flex}
+.page-inner{flex:1;padding:16px 20px}
+.page-inner::-webkit-scrollbar{width:4px}
+.page-inner::-webkit-scrollbar-thumb{background:#FFCAD4;border-radius:10px}
 
-/* ===== Layout ===== */
-.main-container{display:flex;height:100vh;padding-top:52px}
-.page{display:none;flex:1;overflow:hidden}
-.page.active{display:flex}
-.page-content{flex:1;overflow-y:auto;padding:16px 20px}
-.page-content::-webkit-scrollbar{width:4px}
-.page-content::-webkit-scrollbar-thumb{background:var(--pink-light);border-radius:10px}
+/* MAP */
+.mwrap{flex:1;position:relative;display:flex}
+#map{flex:1}
+.search{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:600;width:380px;max-width:88%}
+.search .box{display:flex;background:#fff;border-radius:22px;box-shadow:0 3px 12px rgba(0,0,0,0.08);overflow:hidden}
+.search .box input{flex:1;border:none;outline:none;padding:10px 14px;font-size:12px;font-family:inherit;background:transparent;color:#4A3040}
+.search .box input::placeholder{color:#bbb}
+.search .box button{width:40px;border:none;background:none;color:#E8879B;cursor:pointer;font-size:16px;flex-shrink:0}
+.results{position:absolute;top:46px;left:0;right:0;background:#fff;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.1);max-height:180px;overflow-y:auto;display:none}
+.results.open{display:block}
+.results .r{padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f5f5f5;font-size:12px}
+.results .r:hover{background:#FFF5F0}
+.tools{position:absolute;bottom:80px;right:10px;z-index:550;display:flex;flex-direction:column;gap:5px}
+.tools button{width:36px;height:36px;border-radius:50%;border:none;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.08);cursor:pointer;font-size:15px;color:#666;transition:transform 0.12s}
+.tools button:hover{transform:scale(1.06)}
+.tools button.ac{background:linear-gradient(135deg,#F4ACB7,#E8879B);color:#fff}
+.hint{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.9);border-radius:20px;padding:8px 16px;font-size:11px;color:#D4788A;z-index:500;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.pin{position:absolute;z-index:550;width:30px;height:30px;background:linear-gradient(135deg,#F4ACB7,#E8879B);border-radius:50% 50% 50% 0;transform:translate(-50%,-100%) rotate(-45deg);box-shadow:0 3px 8px rgba(232,135,155,0.4);border:2px solid #fff;pointer-events:none;display:none}
+.plabel{position:absolute;z-index:560;background:#fff;border-radius:14px;padding:5px 10px;font-size:11px;font-weight:600;box-shadow:0 3px 12px rgba(0,0,0,0.1);display:none;white-space:nowrap;pointer-events:none;transform:translate(-50%,-110%);color:#4A3040}
+.plabel span{display:block;font-size:9px;color:#999;font-weight:400}
 
-/* ===== Map ===== */
-.map-wrapper{flex:1;position:relative;display:flex}
-#map{width:100%;height:100%}
-/* Dark/light tile map */
-.leaflet-tile-pane{filter:sepia(0.06) brightness(1.04)}
+/* MAP SIDEBAR */
+.side{width:300px;background:#fff;border-left:1px solid #eee;display:flex;flex-direction:column;overflow:hidden}
+.sidehead{padding:14px 16px 8px;display:flex;justify-content:space-between;font-weight:600;font-size:13px;border-bottom:1px solid #f5f5f5}
+.sidehead .t2{display:flex;gap:4px}
+.sidehead .t2 button{padding:3px 10px;border-radius:10px;border:1px solid #e0e0e0;background:none;font-size:10px;font-family:inherit;cursor:pointer;color:#999}
+.sidehead .t2 button.on{background:#F4ACB7;color:#fff;border-color:#F4ACB7}
+.sidelist{flex:1;overflow-y:auto;padding:8px 12px}
+.sidelist::-webkit-scrollbar{width:3px}
+.sidelist::-webkit-scrollbar-thumb{background:#FFCAD4;border-radius:10px}
+.scard{position:relative;padding:10px 12px 10px 30px;margin-bottom:6px;background:#fff;border:1px solid #f0f0f0;border-radius:10px;cursor:pointer;transition:box-shadow 0.15s;font-size:11px}
+.scard:hover{box-shadow:0 4px 12px rgba(244,172,183,0.12)}
+.scard::before{content:'';position:absolute;left:10px;top:14px;width:8px;height:8px;background:#F4ACB7;border-radius:50%}
+.scard .sn{font-weight:600;font-size:12px}.scard .sa{font-size:9px;color:#bbb;margin-top:1px}.scard .sd{font-size:9px;color:#ccc}
+.empty{text-align:center;padding:30px;color:#ccc;font-size:12px}
+.empty .ei{font-size:32px;margin-bottom:6px}
 
-.search-overlay{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:600;width:380px;max-width:86%}
-.search-box{display:flex;background:white;border-radius:22px;box-shadow:0 3px 14px rgba(0,0,0,0.08);overflow:hidden;border:2px solid transparent;transition:border-color 0.15s}
-.search-box:focus-within{border-color:var(--pink)}
-.search-input{flex:1;border:none;outline:none;padding:10px 14px;font-size:12px;font-family:inherit;color:var(--text);background:transparent}
-.search-input::placeholder{color:var(--mauve);opacity:0.4}
-.search-btn{width:38px;border:none;background:transparent;color:var(--pink-mid);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.search-results{position:absolute;top:44px;left:0;right:0;background:white;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.1);max-height:180px;overflow-y:auto;display:none;z-index:601}
-.search-results.show{display:block}
-.search-result-item{padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(0,0,0,0.03);transition:background 0.1s}
-.search-result-item:hover{background:var(--cream)}
-.sr-icon{width:26px;height:26px;background:rgba(244,172,183,0.06);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
-.sr-info{flex:1;min-width:0}
-.sr-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sr-addr{font-size:10px;color:var(--text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.search-empty{padding:16px;text-align:center;color:var(--text-light);font-size:11px}
+/* OTHER PAGES */
+.hd{text-align:center;padding:20px 16px 10px}
+.hd h2{font-size:18px;font-weight:700}
+.hd p{font-size:11px;color:#999;margin-top:2px}
 
-.map-tools{position:absolute;bottom:90px;right:10px;z-index:550;display:flex;flex-direction:column;gap:5px}
-.map-tool{width:36px;height:36px;border-radius:50%;border:none;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.08);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:transform 0.12s;color:var(--text)}
-.map-tool:hover{transform:scale(1.06)}
-.map-tool.active{background:linear-gradient(135deg,#F4ACB7,#E8879B);color:white}
+/* Things */
+.thingsgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;padding:8px 0 20px}
+.tcard{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border:1px solid #f0f0f0;border-radius:10px;cursor:pointer;font-size:12px;transition:border-color 0.12s}
+.tcard:hover{border-color:#F4ACB7}.tcard.done{opacity:0.4;text-decoration:line-through;text-decoration-color:#F4ACB7}
+.tcard .chk{width:24px;height:24px;border-radius:50%;border:2px solid #eee;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:#fff}
+.tcard.done .chk{background:#F4ACB7;border-color:#F4ACB7}
+.barwrap{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0 16px}
+.barwrap .bar{width:200px;height:6px;background:#f5f5f5;border-radius:6px;overflow:hidden}
+.barwrap .bar .fill{height:100%;background:linear-gradient(90deg,#F4ACB7,#E8879B);border-radius:6px;transition:width 0.3s}
+.barwrap .pct{font-size:18px;font-weight:700;color:#E8879B}
 
-.pin-preview{position:absolute;z-index:550;width:30px;height:30px;background:linear-gradient(135deg,#F4ACB7,#E8879B);border-radius:50% 50% 50% 0;transform:translate(-50%,-100%) rotate(-45deg);box-shadow:0 3px 10px rgba(232,135,155,0.35);border:2px solid white;pointer-events:none;display:none}
-.found-label{position:absolute;z-index:560;background:white;border-radius:14px;padding:5px 10px;font-size:11px;font-weight:600;box-shadow:0 3px 12px rgba(0,0,0,0.1);display:none;white-space:nowrap;pointer-events:none;transform:translate(-50%,-115%);color:var(--text)}
-.found-label .ah{font-size:9px;color:var(--text-light);font-weight:400;display:block}
+/* Anniversaries */
+.annigrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;padding:10px 0 20px}
+.acard{background:#fff;border:1px solid #f0f0f0;border-radius:14px;padding:20px 14px;text-align:center;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;position:relative}
+.acard:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(244,172,183,0.14)}
+.acard .ai{font-size:32px;margin-bottom:6px}.acard .an{font-size:14px;font-weight:600}.acard .ad{font-size:10px;color:#ccc;margin:3px 0 6px}
+.acard .ac{display:inline-block;padding:4px 12px;background:#FFF5F0;border-radius:14px;font-size:11px;font-weight:700;color:#E8879B}
+.acard .arm{position:absolute;top:6px;right:10px;width:20px;height:20px;border:none;background:none;color:#ccc;cursor:pointer;border-radius:50%;font-size:10px;opacity:0;transition:opacity 0.12s}
+.acard:hover .arm{opacity:1}.acard .arm:hover{color:#D4687C;background:#fff0f0}
+.aadd{display:flex;align-items:center;justify-content:center;min-height:140px;border:2px dashed #eee;border-radius:14px;cursor:pointer;color:#F4ACB7;font-size:13px;transition:border-color 0.12s}
+.aadd:hover{border-color:#F4ACB7;background:rgba(244,172,183,0.02)}
 
-.map-hint{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.9);border:1px solid rgba(0,0,0,0.05);border-radius:22px;padding:8px 18px;font-size:11px;color:var(--rose);z-index:500;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+/* Stats */
+.statsgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;padding:10px 0 16px}
+.statsc{background:#fff;border:1px solid #f0f0f0;border-radius:12px;padding:18px 12px;text-align:center;transition:transform 0.12s}
+.statsc:hover{transform:translateY(-2px)}.statsc .si{font-size:26px;margin-bottom:4px}
+.statsc .sn{font-size:22px;font-weight:700;color:#E8879B}.statsc .sl{font-size:10px;color:#ccc;margin-top:2px}
+.banner{background:linear-gradient(135deg,#FFF5F7,#FFE5D9);border-radius:16px;padding:24px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden}
+.banner .bg{position:absolute;top:-20px;right:-10px;font-size:60px;opacity:0.04}.banner .bn{font-size:44px;font-weight:800;background:linear-gradient(135deg,#E8879B,#C87080);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.banner .cols{display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:11px;color:#999}
+.banner .cols div{text-align:center}.banner .cols b{display:block;font-size:18px;color:#E8879B}
+.tags{display:flex;flex-wrap:wrap;gap:6px;padding:10px 0}
+.tags span{padding:5px 12px;background:#FFF5F0;border-radius:14px;font-size:11px;color:#E8879B;cursor:pointer;transition:transform 0.12s}
+.tags span:hover{transform:scale(1.05)}
 
-.map-sidebar{width:300px;background:rgba(255,255,255,0.88);border-left:1px solid rgba(0,0,0,0.06);display:flex;flex-direction:column;overflow-y:auto}
-.map-sidebar::-webkit-scrollbar{width:4px}
-.map-sidebar::-webkit-scrollbar-thumb{background:var(--pink-light);border-radius:10px}
-.ms-header{padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(255,255,255,0.96);z-index:5}
-.ms-header h4{font-size:13px;display:flex;align-items:center;gap:5px}
-.ms-tabs{display:flex;gap:3px}
-.ms-tab{padding:4px 10px;border-radius:12px;border:1px solid rgba(0,0,0,0.08);background:transparent;font-size:10px;color:var(--text-light);cursor:pointer;font-family:inherit;transition:background 0.12s}
-.ms-tab.active{background:var(--pink);color:white;border-color:var(--pink)}
-.ms-list{padding:4px 12px 12px;position:relative}
-.timeline-line{position:absolute;left:25px;top:4px;bottom:4px;width:2px;background:linear-gradient(to bottom,var(--pink-light),var(--pink),var(--pink-light));border-radius:1px;opacity:0.3}
+/* Letters */
+.lcard{background:#fff;border:1px solid #f0f0f0;border-radius:12px;padding:16px 18px;margin-bottom:10px;position:relative;transition:box-shadow 0.15s}
+.lcard:hover{box-shadow:0 4px 14px rgba(244,172,183,0.1)}
+.lcard .lrm{position:absolute;top:8px;right:12px;width:22px;height:22px;border:none;background:none;color:#ccc;cursor:pointer;border-radius:50%;font-size:10px;opacity:0.2;transition:opacity 0.12s}
+.lcard:hover .lrm{opacity:1}.lcard .lrm:hover{color:#D4687C}
+.lcard h4{font-size:13px;margin-bottom:4px}.lcard p{font-size:11px;color:#999;line-height:1.6;white-space:pre-wrap}.lcard .ld{font-size:9px;color:#ddd;margin-top:8px}
 
-.loc-card{position:relative;background:white;border:1px solid rgba(0,0,0,0.03);border-radius:10px;padding:10px 12px 10px 34px;margin-bottom:7px;cursor:pointer;transition:transform 0.12s,box-shadow 0.12s}
-.loc-card:hover{box-shadow:0 4px 14px rgba(244,172,183,0.14);transform:translateX(-2px);border-color:var(--pink)}
-.loc-card.active{border-color:var(--pink-mid);background:linear-gradient(135deg,#FFF5F7,#FFECF0);box-shadow:0 2px 10px rgba(240,152,168,0.1)}
-.loc-card::before{content:'';position:absolute;left:-12px;top:16px;width:8px;height:8px;background:var(--pink);border:2px solid white;border-radius:50%;z-index:2;box-shadow:0 0 0 2px rgba(244,172,183,0.12)}
-.loc-card.active::before{background:var(--pink-mid);width:10px;height:10px;left:-13px;top:15px}
-.lc-thumb{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--blush),var(--pink-light));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden}
-.lc-thumb img{width:100%;height:100%;object-fit:cover}
-.lc-row{display:flex;gap:8px;align-items:center}
-.lc-info{flex:1;min-width:0}
-.lc-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lc-addr{font-size:9px;color:var(--mauve);opacity:0.5;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lc-date{font-size:9px;color:var(--text-light);margin-top:1px}
-.lc-meta{display:flex;gap:4px;margin-top:3px}
-.lc-tag{font-size:9px;background:rgba(244,172,183,0.06);color:var(--rose);padding:2px 6px;border-radius:10px}
+/* Modal */
+.ovl{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.2);z-index:2500;display:flex;align-items:center;justify-content:center}
+.mdl{background:#fff;border-radius:16px;padding:24px;width:340px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.12)}
+.mdl h4{font-size:14px;margin-bottom:12px}
+.mdl input{width:100%;padding:9px 12px;border:2px solid #eee;border-radius:10px;font-size:12px;font-family:inherit;outline:none;text-align:center;margin-bottom:7px;color:#4A3040}
+.mdl input:focus{border-color:#F4ACB7}
+.mdl .mr{display:flex;gap:8px;margin-top:12px}
+.mdl .mr button{flex:1;padding:10px;border:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer}
+.mdl .mr .ok{background:linear-gradient(135deg,#F4ACB7,#E8879B);color:#fff}
+.mdl .mr .no{background:none;color:#999}
 
-.wish-card{background:white;border:1px dashed rgba(244,172,183,0.15);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:background 0.12s}
-.wish-card:hover{border-color:var(--pink);background:rgba(255,245,247,0.3)}
-.wish-star{font-size:16px;flex-shrink:0}
-.wish-info{flex:1;min-width:0}
-.wish-name{font-size:12px;font-weight:600}
-.wish-addr{font-size:9px;color:var(--text-light);margin-top:1px}
-.wish-actions{display:flex;gap:2px}
-.wish-act{width:24px;height:24px;border:none;border-radius:50%;background:transparent;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:background 0.12s}
-.wish-act.go{color:var(--pink-mid)}.wish-act.go:hover{background:rgba(240,152,168,0.08)}
-.wish-act.rm{color:var(--mauve);opacity:0.3}.wish-act.rm:hover{background:rgba(200,120,140,0.06);color:#D4687C;opacity:1}
+/* Detail */
+.dovl{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.2);z-index:2000;display:flex;align-items:center;justify-content:center}
+.dpanel{background:#fff;border-radius:18px;width:500px;max-height:80vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.12);position:relative}
+.dpanel::-webkit-scrollbar{width:4px}.dpanel::-webkit-scrollbar-thumb{background:#FFCAD4;border-radius:10px}
+.dtop{position:sticky;top:0;z-index:5;display:flex;justify-content:flex-end;padding:8px 8px 0 0;background:linear-gradient(to bottom,#fff 60%,transparent)}
+.dtop button{width:28px;height:28px;background:#f5f5f5;border:none;border-radius:50%;cursor:pointer;font-size:13px;color:#999}
+.din{padding:0 22px 22px}.dhero{text-align:center;margin-bottom:16px}
+.dhero .di{width:52px;height:52px;background:linear-gradient(135deg,#FFF0F3,#FFE0E7);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 8px}
+.dhero input{text-align:center;font-size:18px;font-weight:700;border:none;background:none;font-family:inherit;color:#4A3040;width:100%;outline:none;padding:2px 0}
+.dhero input:focus{border-bottom:2px solid #F4ACB7}.dhero .da{font-size:10px;color:#bbb;margin-top:2px}
+.sec{margin-top:16px}.sec h4{font-size:12px;color:#E8879B;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.sec h4::before{content:'';width:3px;height:12px;background:linear-gradient(180deg,#F4ACB7,#E8879B);border-radius:2px}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pgrid .pc{aspect-ratio:1;border-radius:8px;overflow:hidden;cursor:pointer;position:relative;background:#FFF5F0}
+.pgrid .pc img{width:100%;height:100%;object-fit:cover;transition:transform 0.2s}
+.pgrid .pc:hover img{transform:scale(1.04)}
+.pgrid .pc .pr{position:absolute;top:3px;right:3px;width:18px;height:18px;background:rgba(0,0,0,0.35);color:#fff;border:none;border-radius:50%;cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.12s}
+.pgrid .pc:hover .pr{opacity:1}
+.pgrid .add{aspect-ratio:1;border:2px dashed #FFCAD4;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#F4ACB7;font-size:18px}
+.pgrid .add:hover{border-color:#E8879B}.pgrid .add span{font-size:9px}
+.ta{width:100%;min-height:60px;padding:8px 12px;border:2px solid #f0f0f0;border-radius:10px;font-size:11px;font-family:inherit;outline:none;resize:vertical;line-height:1.5;transition:border-color 0.12s}
+.ta:focus{border-color:#F4ACB7}.ta::placeholder{color:#ddd}
+.mems{display:flex;flex-direction:column;gap:4px}
+.mems .mi{display:flex;align-items:flex-start;gap:6px;background:#FFF5F0;border-radius:8px;padding:7px 10px;font-size:11px;line-height:1.4}
+.mems .mi .md{width:4px;height:4px;background:#F4ACB7;border-radius:50%;flex-shrink:0;margin-top:4px}
+.mems .mi .mx{flex:1}.mems .mi .mr{width:18px;height:18px;border:none;background:none;color:#ccc;cursor:pointer;border-radius:50%;font-size:9px;flex-shrink:0;opacity:0.2}.mems .mi:hover .mr{opacity:1}
+.mar{display:flex;gap:6px;margin-top:6px}
+.mar input{flex:1;padding:7px 10px;border:2px solid #f0f0f0;border-radius:16px;font-size:11px;font-family:inherit;outline:none}.mar input:focus{border-color:#F4ACB7}
+.mar button{width:30px;height:30px;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:#fff;border:none;border-radius:50%;font-size:14px;cursor:pointer;flex-shrink:0}
+.emos{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap}
+.emos button{width:28px;height:28px;border-radius:50%;border:2px solid transparent;background:#fafafa;font-size:14px;cursor:pointer}.emos button:hover{border-color:#F4ACB7}.emos button.on{border-color:#E8879B;background:#fff}
+.saverow{display:flex;gap:8px;margin-top:18px}
+.saverow .save{flex:1;padding:11px;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:#fff;border:none;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer}
+.saverow .del{width:38px;height:38px;border:2px solid #eee;border-radius:50%;background:none;cursor:pointer;font-size:13px;color:#ccc}.saverow .del:hover{border-color:#D4687C;color:#D4687C}
 
-.sidebar-empty{text-align:center;padding:30px 14px;color:var(--text-light)}
-.sidebar-empty .empty-icon{font-size:36px;margin-bottom:6px}
-.sidebar-empty p{font-size:10px;line-height:1.6}
+/* Lightbox */
+.lb{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:3000;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.lb img{max-width:90vw;max-height:90vh;border-radius:8px}
 
-/* ===== Timeline ===== */
-.timeline-container{flex:1;overflow-y:auto;padding:16px 20px;background:linear-gradient(180deg,var(--cream) 0%,rgba(255,245,247,0.5) 30%,var(--white) 100%)}
-.timeline-container::-webkit-scrollbar{width:4px}
-.timeline-container::-webkit-scrollbar-thumb{background:var(--pink-light);border-radius:10px}
-.tl-hero{text-align:center;padding:24px 16px 32px}
-.tl-hero h2{font-size:20px;font-weight:700;background:linear-gradient(135deg,#E8879B,#C87080);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.tl-hero p{font-size:12px;color:var(--text-light);margin-top:4px}
-.tl-hero .tl-hero-stats{display:flex;justify-content:center;gap:20px;margin-top:14px}
-.tl-stat{text-align:center}
-.tl-stat-num{font-size:24px;font-weight:700;color:var(--pink-mid);display:block}
-.tl-stat-label{font-size:10px;color:var(--text-light)}
-.tl-center{position:relative;max-width:520px;margin:0 auto}
-.tl-line{position:absolute;left:50%;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--pink-light),var(--pink),var(--pink-light));border-radius:1px;opacity:0.25;transform:translateX(-50%)}
-.tl-item{position:relative;margin-bottom:22px;width:100%;display:flex;align-items:flex-start;contain:content}
-.tl-item:nth-child(odd){padding-right:calc(50% + 22px);text-align:right}
-.tl-item:nth-child(even){padding-left:calc(50% + 22px);text-align:left}
-.tl-dot{position:absolute;left:50%;top:10px;transform:translate(-50%,0);width:10px;height:10px;background:var(--pink);border:2px solid white;border-radius:50%;z-index:3;box-shadow:0 0 0 3px rgba(244,172,183,0.12)}
-.tl-dot.has-photo{background:var(--pink-mid);box-shadow:0 0 0 4px rgba(240,152,168,0.14)}
-.tl-card{background:white;border-radius:14px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.03);cursor:pointer;transition:transform 0.15s,box-shadow 0.15s}
-.tl-card:hover{box-shadow:0 4px 14px rgba(244,172,183,0.16);transform:translateY(-2px)}
-.tl-card .tl-card-type{font-size:9px;color:var(--pink-mid);font-weight:600;letter-spacing:0.5px;margin-bottom:3px}
-.tl-card h4{font-size:13px;font-weight:600;margin-bottom:3px}
-.tl-card .tl-card-date{font-size:10px;color:var(--text-light);margin-bottom:5px}
-.tl-photos{display:flex;gap:5px;margin:6px 0;flex-wrap:wrap;justify-content:flex-start}
-.tl-item:nth-child(odd) .tl-photos{justify-content:flex-end}
-.tl-photo{width:56px;height:56px;border-radius:7px;object-fit:cover;cursor:pointer;transition:transform 0.15s}
-.tl-photo:hover{transform:scale(1.06)}
-.tl-card .tl-excerpt{font-size:11px;color:var(--text-light);line-height:1.5;margin-top:3px}
-.tl-memories{margin-top:5px}
-.tl-mem{display:flex;align-items:flex-start;gap:5px;font-size:10px;color:var(--mauve);line-height:1.4;padding:3px 0}
-.tl-mem-dot{width:4px;height:4px;background:var(--pink);border-radius:50%;flex-shrink:0;margin-top:4px}
-@media(max-width:768px){.tl-item:nth-child(odd),.tl-item:nth-child(even){padding-left:24px;padding-right:0;text-align:left}.tl-line{left:12px}.tl-dot{left:12px}.tl-item:nth-child(odd) .tl-photos{justify-content:flex-start}}
+/* Toast */
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#fff;border-radius:18px;padding:8px 18px;font-size:12px;color:#4A3040;box-shadow:0 6px 20px rgba(0,0,0,0.1);z-index:5000}
 
-/* ===== 100 Things ===== */
-.things-header{text-align:center;padding:18px 16px 10px}
-.things-header h2{font-size:20px;font-weight:700;background:linear-gradient(135deg,#E8879B,#C87080);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.things-header p{font-size:11px;color:var(--text-light);margin-top:3px}
-.things-progress{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0 18px}
-.things-bar-wrap{width:220px;height:8px;background:rgba(244,172,183,0.1);border-radius:8px;overflow:hidden}
-.things-bar-fill{height:100%;background:linear-gradient(90deg,#F4ACB7,#E8879B);border-radius:8px;transition:width 0.3s}
-.things-pct{font-size:20px;font-weight:700;color:var(--pink-mid)}
-.things-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;padding:4px 0 24px}
-.thing-card{display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;contain:content;border-radius:10px;border:1px solid rgba(0,0,0,0.04);cursor:pointer;transition:border-color 0.12s}
-.thing-card:hover{border-color:var(--pink)}
-.thing-card.done{opacity:0.5;text-decoration:line-through;text-decoration-color:var(--pink);text-decoration-thickness:2px;background:rgba(244,172,183,0.02)}
-.thing-check{width:26px;height:26px;border-radius:50%;border:2px solid rgba(244,172,183,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:background 0.12s}
-.thing-card:hover .thing-check{border-color:var(--pink)}
-.thing-card.done .thing-check{background:var(--pink);border-color:var(--pink);color:white}
-.thing-emoji{font-size:18px;flex-shrink:0}
-.thing-name{font-size:12px;flex:1}
+/* Hearts */
+.hearts{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999}
+.hearts .hf{position:absolute;animation:fly 2s ease-out forwards}
+@keyframes fly{0%{opacity:1;transform:translateY(0) scale(1) rotate(0)}100%{opacity:0;transform:translateY(-180px) scale(0.15) rotate(25deg)}}
 
-/* ===== Anniversaries ===== */
-.anni-header{text-align:center;padding:18px 16px 6px}
-.anni-header h2{font-size:20px;font-weight:700;color:var(--text)}
-.anni-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;padding:14px 0 24px}
-.anni-card{background:white;border-radius:14px;padding:22px 14px 18px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.03);cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;position:relative}
-.anni-card:hover{box-shadow:0 6px 20px rgba(244,172,183,0.18);transform:translateY(-3px)}
-.anni-card .anni-icon{font-size:36px;margin-bottom:8px}
-.anni-card .anni-name{font-size:14px;font-weight:600;margin-bottom:4px;color:var(--text)}
-.anni-card .anni-date-display{font-size:10px;color:var(--text-light);margin-bottom:8px}
-.anni-card .anni-countdown{display:inline-block;padding:5px 14px;background:linear-gradient(135deg,#FFF0F3,#FFE5D9);border-radius:16px;font-size:12px;font-weight:700;color:var(--pink-mid)}
-.anni-card .anni-rm{position:absolute;top:8px;right:10px;width:22px;height:22px;border:none;background:transparent;color:var(--mauve);cursor:pointer;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.12s}
-.anni-card:hover .anni-rm{opacity:1}.anni-card .anni-rm:hover{background:rgba(200,120,140,0.06);color:#D4687C}
-.anni-add{display:flex;align-items:center;justify-content:center;min-height:150px;border:2px dashed rgba(244,172,183,0.2);background:transparent;border-radius:14px;cursor:pointer;color:var(--pink);font-size:13px;transition:border-color 0.12s,background 0.12s;gap:5px}
-.anni-add:hover{border-color:var(--pink);background:rgba(244,172,183,0.02)}
-
-/* ===== Stats ===== */
-.stats-header{text-align:center;padding:18px 16px 6px}
-.stats-header h2{font-size:20px;font-weight:700;color:var(--text)}
-.stats-header p{font-size:11px;color:var(--text-light);margin-top:3px}
-.stats-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:14px 0 18px}
-.stats-card{background:white;border-radius:14px;padding:20px 14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.03);transition:transform 0.15s,box-shadow 0.15s}
-.stats-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(244,172,183,0.16)}
-.stats-card .sc-icon{font-size:28px;margin-bottom:6px}
-.stats-card .sc-num{font-size:26px;font-weight:700;color:var(--pink-mid)}
-.stats-card .sc-label{font-size:10px;color:var(--text-light);margin-top:3px}
-.stats-city-cloud{background:white;border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.03);margin-bottom:18px}
-.stats-city-cloud h4{font-size:12px;color:var(--rose);margin-bottom:8px}
-.stats-city-cloud .city-tags{display:flex;flex-wrap:wrap;gap:6px}
-.city-tag{padding:5px 12px;background:linear-gradient(135deg,#FFF0F3,#FFE5D9);border-radius:16px;font-size:11px;color:var(--pink-mid);font-weight:500;cursor:pointer;transition:transform 0.12s}
-.city-tag:hover{transform:scale(1.05);box-shadow:0 2px 10px rgba(244,172,183,0.14)}
-
-/* ===== Detail Panel ===== */
-.detail-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(74,48,64,0.22);z-index:2000;display:flex;align-items:center;justify-content:center}
-.detail-panel{background:white;border-radius:20px;width:520px;max-height:80vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.12);position:relative;border:1px solid rgba(0,0,0,0.04)}
-.detail-panel::-webkit-scrollbar{width:4px}
-.detail-panel::-webkit-scrollbar-thumb{background:var(--pink-light);border-radius:10px}
-.detail-top{position:sticky;top:0;z-index:10;display:flex;justify-content:flex-end;padding:8px 8px 0 0;background:linear-gradient(to bottom,white 60%,transparent)}
-.detail-close{width:28px;height:28px;background:rgba(244,172,183,0.06);border:none;border-radius:50%;cursor:pointer;font-size:13px;color:var(--mauve);display:flex;align-items:center;justify-content:center}
-.detail-close:hover{background:rgba(240,152,168,0.1);color:#D4687C}
-.detail-content{padding:0 24px 24px}
-.detail-hero{text-align:center;margin-bottom:18px}
-.detail-icon{width:56px;height:56px;background:linear-gradient(135deg,#FFF0F3,#FFE0E7);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 8px;box-shadow:0 3px 12px rgba(244,172,183,0.1)}
-.detail-name-input{text-align:center;font-size:18px;font-weight:700;border:none;background:transparent;font-family:inherit;color:var(--text);width:100%;outline:none;padding:2px 0}
-.detail-name-input:focus{border-bottom:2px solid var(--pink)}
-.detail-addr{font-size:10px;color:var(--text-light);margin-top:2px}
-.detail-date-row{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:4px}
-.detail-date-input{border:none;background:transparent;font-size:11px;font-family:inherit;color:var(--text-light);cursor:pointer;outline:none;text-align:center;padding:2px 5px;border-radius:5px}
-.detail-date-input:focus{background:rgba(244,172,183,0.04)}
-.sec{margin-top:18px}
-.sec-title{font-size:12px;font-weight:700;color:var(--pink-mid);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.sec-title::before{content:'';width:3px;height:14px;background:linear-gradient(180deg,var(--pink),var(--rose));border-radius:2px}
-.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-.photo-cell{aspect-ratio:1;border-radius:8px;overflow:hidden;cursor:pointer;position:relative;background:linear-gradient(135deg,#FFF0F3,#FFE0E7)}
-.photo-cell img{width:100%;height:100%;object-fit:cover;transition:transform 0.25s}
-.photo-cell:hover img{transform:scale(1.05)}
-.photo-cell .photo-rm{position:absolute;top:3px;right:3px;width:20px;height:20px;background:rgba(0,0,0,0.35);color:white;border:none;border-radius:50%;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.12s}
-.photo-cell:hover .photo-rm{opacity:1}
-.add-photo-cell{aspect-ratio:1;border:2px dashed rgba(244,172,183,0.25);border-radius:8px;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--pink);font-size:20px;transition:border-color 0.12s}
-.add-photo-cell:hover{border-color:var(--pink-mid)}
-.add-photo-cell span{font-size:9px;color:var(--mauve)}
-.notes-input{width:100%;min-height:64px;padding:9px 12px;border:2px solid rgba(244,172,183,0.1);border-radius:10px;font-size:11px;font-family:inherit;color:var(--text);resize:vertical;outline:none;line-height:1.5;transition:border-color 0.12s;background:rgba(255,245,247,0.2)}
-.notes-input:focus{border-color:var(--pink);background:white}
-.notes-input::placeholder{color:var(--mauve);opacity:0.3}
-.mem-list{display:flex;flex-direction:column;gap:5px}
-.mem-item{display:flex;align-items:flex-start;gap:6px;background:linear-gradient(135deg,#FFF5F7,#FFF0F3);border-radius:10px;padding:8px 10px;font-size:11px;line-height:1.4;border:1px solid rgba(244,172,183,0.05)}
-.mem-item .mem-dot{width:5px;height:5px;background:var(--pink);border-radius:50%;flex-shrink:0;margin-top:4px}
-.mem-item .mem-text{flex:1}
-.mem-item .mem-rm{width:20px;height:20px;background:transparent;border:none;color:var(--mauve);cursor:pointer;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0.25;transition:opacity 0.12s}
-.mem-item:hover .mem-rm{opacity:1}.mem-item .mem-rm:hover{background:rgba(240,152,168,0.06)}
-.mem-add-row{display:flex;gap:6px;margin-top:7px}
-.mem-input{flex:1;padding:8px 12px;border:2px solid rgba(244,172,183,0.1);border-radius:18px;font-size:11px;font-family:inherit;outline:none;transition:border-color 0.12s;background:rgba(255,245,247,0.2)}
-.mem-input:focus{border-color:var(--pink);background:white}
-.mem-input::placeholder{color:var(--mauve);opacity:0.3}
-.mem-add{width:32px;height:32px;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:white;border:none;border-radius:50%;font-size:14px;cursor:pointer;flex-shrink:0;transition:transform 0.12s}
-.mem-add:hover{transform:scale(1.05)}
-.emoji-row{display:flex;align-items:center;gap:5px;margin-top:14px;flex-wrap:wrap}
-.emoji-label{font-size:10px;color:var(--mauve);flex-shrink:0}
-.emoji-chip{width:30px;height:30px;border-radius:50%;border:2px solid transparent;background:rgba(244,172,183,0.02);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:border-color 0.1s}
-.emoji-chip:hover{background:white;border-color:var(--pink-light);transform:scale(1.06)}
-.emoji-chip.on{border-color:var(--pink-mid);background:white}
-.save-row{display:flex;gap:8px;margin-top:20px}
-.btn-save{flex:1;padding:12px;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:white;border:none;border-radius:22px;font-size:13px;font-weight:600;cursor:pointer;transition:transform 0.12s,box-shadow 0.12s;box-shadow:0 3px 10px rgba(232,135,155,0.2)}
-.btn-save:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(232,135,155,0.3)}
-.btn-delete{width:40px;height:40px;background:transparent;border:2px solid rgba(200,120,140,0.1);border-radius:50%;cursor:pointer;font-size:13px;color:var(--mauve);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:border-color 0.12s}
-.btn-delete:hover{border-color:#D4687C;color:#D4687C}
-
-/* ===== Modal ===== */
-.modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(74,48,64,0.22);z-index:2500;display:flex;align-items:center;justify-content:center}
-.modal-box{background:white;border-radius:16px;padding:24px;width:350px;box-shadow:0 12px 40px rgba(0,0,0,0.12);text-align:center}
-.modal-box h4{font-size:14px;margin-bottom:12px;color:var(--text)}
-.modal-box input{width:100%;padding:9px 12px;border:2px solid rgba(244,172,183,0.12);border-radius:10px;font-size:12px;font-family:inherit;outline:none;text-align:center;color:var(--text);margin-bottom:7px}
-.modal-box input:focus{border-color:var(--pink)}
-.modal-box .btn-row{display:flex;gap:8px;margin-top:12px}
-.modal-box .mbtn{flex:1;padding:10px;border:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:background 0.12s,box-shadow 0.12s}
-.mbtn.primary{background:linear-gradient(135deg,#F4ACB7,#E8879B);color:white}
-.mbtn.primary:hover{box-shadow:0 3px 10px rgba(232,135,155,0.25)}
-.mbtn.ghost{background:transparent;color:var(--mauve)}
-.mbtn.ghost:hover{background:rgba(244,172,183,0.04)}
-
-/* ===== Lightbox ===== */
-.lightbox{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:3000;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.lightbox img{max-width:90vw;max-height:90vh;border-radius:10px}
-
-/* ===== Hearts ===== */
-.hearts-layer{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999}
-.heart-fly{position:absolute;animation:flyUp 2s ease-out forwards;pointer-events:none}
-@keyframes flyUp{0%{opacity:1;transform:translateY(0) scale(1) rotate(0)}100%{opacity:0;transform:translateY(-200px) scale(0.15) rotate(25deg)}}
-
-/* ===== Map Markers ===== */
+/* Leaflet */
 .leaflet-control-zoom{display:none}
-.custom-marker{background:transparent!important;border:none!important}
-.marker-dot{width:38px;height:38px;background:linear-gradient(135deg,#F4ACB7,#E8879B);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 3px 10px rgba(232,135,155,0.35);border:2px solid white;transform:translate(-50%,-50%);cursor:pointer}
-.marker-dot:hover{transform:translate(-50%,-50%) scale(1.1)}
-.marker-wish{background:linear-gradient(135deg,#FFD1B3,#FFB88C)!important;box-shadow:0 3px 10px rgba(255,184,140,0.3)!important}
-
-.toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);background:white;border-radius:20px;padding:9px 20px;font-size:12px;color:var(--text);box-shadow:0 8px 28px rgba(0,0,0,0.12);z-index:5000}
-
-/* ===== Connection Setup ===== */
-.setup-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(74,48,64,0.5);backdrop-filter:blur(8px);z-index:4000;display:flex;align-items:center;justify-content:center}
-.setup-box{background:white;border-radius:20px;padding:32px;width:420px;box-shadow:0 16px 60px rgba(0,0,0,0.18);text-align:center}
-.setup-box h3{font-size:20px;margin-bottom:6px}
-.setup-box p{font-size:12px;color:var(--text-light);margin-bottom:18px;line-height:1.6}
-.setup-box .step{background:rgba(255,245,247,0.6);border-radius:12px;padding:14px;margin-bottom:10px;font-size:11px;color:var(--text-light);line-height:1.7;text-align:left}
-.setup-box input{width:100%;padding:10px 14px;border:2px solid rgba(244,172,183,0.15);border-radius:12px;font-size:12px;font-family:inherit;outline:none;color:var(--text);margin-bottom:8px}
-.setup-box input:focus{border-color:var(--pink)}
-.setup-box .setup-btn{display:inline-block;padding:12px 32px;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:white;border:none;border-radius:24px;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;box-shadow:0 4px 14px rgba(232,135,155,0.3)}
-
-/* ===== Header connection indicator ===== */
-.conn-indicator{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--mauve);cursor:pointer;padding:3px 8px;border-radius:10px;transition:background 0.12s}
-.conn-indicator:hover{background:rgba(0,0,0,0.03)}
-.conn-dot{width:6px;height:6px;border-radius:50%}
-.conn-dot.online{background:#5cb85c;box-shadow:0 0 6px rgba(92,184,92,0.4)}
-.conn-dot.offline{background:var(--mauve)}
+.cm{background:transparent!important;border:none!important}
+.cm .mdot{width:38px;height:38px;background:linear-gradient(135deg,#F4ACB7,#E8879B);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 3px 10px rgba(232,135,155,0.35);border:2px solid #fff;transform:translate(-50%,-50%);cursor:pointer}
+.cm .mwish{background:linear-gradient(135deg,#FFD1B3,#FFB88C)!important}
+/* Mobile */
+@media(max-width:768px){.side{display:none}.dpanel{width:94vw}}
 </style>
 </head>
 <body>
 
-<nav class="top-nav">
-  <div class="nav-brand">
-    <div class="nav-logo">💕</div>
-    <span class="nav-title">我们的恋爱小窝</span>
-    <div class="conn-indicator" onclick="showSetupModal()" title="点击设置云端同步">
-      <div class="conn-dot" id="connDot"></div>
-      <span id="connLabel">本地</span>
-    </div>
+<div class="topbar">
+  <div class="brand">
+    <div class="dot g" id="cdot"></div>
+    <span>💕 我们的恋爱小窝</span>
   </div>
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="switchPage('map')">🗺️ <span class="tab-label">地图</span></button>
-    <button class="nav-tab" onclick="switchPage('timeline')">📖 <span class="tab-label">时间线</span></button>
-    <button class="nav-tab" onclick="switchPage('things')">✅ <span class="tab-label">小事</span></button>
-    <button class="nav-tab" onclick="switchPage('anni')">💝 <span class="tab-label">纪念日</span></button>
-    <button class="nav-tab" onclick="switchPage('stats')">📊 <span class="tab-label">统计</span></button>
-    <button class="nav-tab" onclick="switchPage('letters')">💌 <span class="tab-label">信件</span></button>
+  <div class="tabs">
+    <button class="on" onclick="go('map')">🗺️<em>地图</em></button>
+    <button onclick="go('timeline')">📖<em>时间线</em></button>
+    <button onclick="go('things')">✅<em>小事</em></button>
+    <button onclick="go('anni')">💝<em>纪念日</em></button>
+    <button onclick="go('stats')">📊<em>统计</em></button>
+    <button onclick="go('letters')">💌<em>信件</em></button>
   </div>
-  <div class="nav-cd" onclick="openAnniModal()" id="navCd">💝 <b id="cdDays">--</b> 天</div>
-</nav>
-
-<div class="main-container">
-  <!-- MAP -->
-  <div class="page active" id="page_map">
-    <div class="map-wrapper">
-      <div id="map"></div>
-      <div class="search-overlay" id="searchOverlay">
-        <div class="search-box">
-          <input class="search-input" id="searchInput" placeholder="搜索地点..." autocomplete="off">
-          <button class="search-btn" onclick="doSearch()">🔍</button>
-        </div>
-        <div class="search-results" id="searchResults"></div>
-      </div>
-      <div class="map-tools">
-        <button class="map-tool" id="routeBtn" onclick="toggleRoute()" title="旅行路线">✈️</button>
-        <button class="map-tool" onclick="enterAddMode()" title="添加去过的地方">📍</button>
-        <button class="map-tool" onclick="enterWishMode()" title="添加想去的地方">💭</button>
-      </div>
-      <div class="pin-preview" id="pinPreview">📍</div>
-      <div class="found-label" id="foundLabel"><span id="foundName"></span><span class="ah" id="foundAddr"></span></div>
-      <div class="map-hint" id="mapHint">在搜索框输入地名，或点击📍添加去过的地方</div>
-    </div>
-    <div class="map-sidebar" id="mapSidebar">
-      <div class="ms-header">
-        <h4>🧭 旅行足迹</h4>
-        <div class="ms-tabs">
-          <button class="ms-tab active" onclick="switchMapTab('visited')">去过</button>
-          <button class="ms-tab" onclick="switchMapTab('wishlist')">想去</button>
-        </div>
-      </div>
-      <div class="ms-list" id="msList"><div class="timeline-line" id="timelineLine"></div></div>
-    </div>
-  </div>
-
-  <div class="page" id="page_timeline"><div class="timeline-container" id="timelineContainer"></div></div>
-  <div class="page" id="page_things"><div class="page-content" id="thingsContent"></div></div>
-  <div class="page" id="page_anni"><div class="page-content" id="anniContent"></div></div>
-  <div class="page" id="page_stats"><div class="page-content" id="statsContent"></div></div>
-  <div class="page" id="page_letters"><div class="page-content" id="lettersContent"></div></div>
 </div>
 
-<div id="detailContainer"></div>
-<div id="lightboxContainer"></div>
-<div id="modalContainer"></div>
-<div id="setupContainer"></div>
-<div class="hearts-layer" id="heartsLayer"></div>
-<input type="file" accept="image/*" id="photoInput" style="display:none" onchange="handlePhotoSelect(event)">
+<div class="main">
+  <!-- MAP -->
+  <div class="page show" id="p_map"><div class="mwrap">
+    <div id="map"></div>
+    <div class="search"><div class="box"><input id="si" placeholder="搜索地点..." autocomplete="off"><button onclick="doSearch()">🔍</button></div><div class="results" id="sr"></div></div>
+    <div class="tools"><button id="routeBtn" onclick="toggleRoute()" title="路线">✈️</button><button onclick="enterAdd()" title="添加">📍</button><button onclick="enterWish()" title="想去">💭</button></div>
+    <div class="pin" id="pin"></div><div class="plabel" id="plb"><span id="pn"></span><span id="pa"></span></div>
+    <div class="hint" id="hint">在搜索框输入地名，或点击📍添加去过的地方</div>
+  </div>
+  <div class="side" id="sidebar">
+    <div class="sidehead"><span>🧭 旅行足迹</span><div class="t2"><button class="on" onclick="st('visited')">去过</button><button onclick="st('wishlist')">想去</button></div></div>
+    <div class="sidelist" id="slist"></div>
+  </div></div>
+
+  <!-- TIMELINE -->
+  <div class="page" id="p_timeline"><div class="page-inner" id="tl"></div></div>
+  <div class="page" id="p_things"><div class="page-inner" id="tg"></div></div>
+  <div class="page" id="p_anni"><div class="page-inner" id="ag"></div></div>
+  <div class="page" id="p_stats"><div class="page-inner" id="sg"></div></div>
+  <div class="page" id="p_letters"><div class="page-inner" id="lg"></div></div>
+</div>
+
+<div id="dlg"></div><div id="lb"></div><div id="modal"></div>
+<div class="hearts" id="hearts"></div>
+<input type="file" accept="image/*" id="pi" style="display:none">
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ==================== CONFIGURATION ====================
-// Skip SDK - use REST API directly
-const SUPABASE_URL = 'https://wrnjhdgoriflwchrzfem.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndybmpoZGdvcmlmbHdjaHJ6ZmVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTU0NzIsImV4cCI6MjA5NTYzMTQ3Mn0.G542eQ0p_efS49gPc-7ahw5LxaXTXMdqg6h_9DOX8Zk';
-const COUPLE_CODE = 'ourlove2024';
+// ==================== CONFIG ====================
+var SUPABASE_URL='https://wrnjhdgoriflwchrzfem.supabase.co';
+var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndybmpoZGdvcmlmbHdjaHJ6ZmVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTU0NzIsImV4cCI6MjA5NTYzMTQ3Mn0.G542eQ0p_efS49gPc-7ahw5LxaXTXMdqg6h_9DOX8Zk';
+var CODE='ourlove2024';
+var SK='couple_hub_v3';
 
-// ==================== DATA MODEL ====================
-const STORAGE_KEY = 'couple_hub_v2';
-const DEFAULT_THINGS = ['👫 一起看一次日出','🌅 一起看一次日落','🌟 一起看星星','🏕️ 一起去露营','🏖️ 一起去海边','⛰️ 一起爬山','🎢 一起去游乐园','🎬 一起看电影','🍳 一起做一顿饭','🎂 一起做蛋糕','📸 拍一组情侣照','💌 给对方写一封情书','🎁 给对方准备惊喜礼物','🌸 一起看花海','🍂 一起踩落叶','❄️ 一起看雪','🎆 一起看烟花','🎵 一起去音乐会','🏛️ 一起去博物馆','📚 一起去图书馆','🚲 一起骑车','🛶 一起划船','🐱 一起撸猫','🐶 一起遛狗','🎨 一起画画','🧩 一起拼拼图','🎮 一起打游戏','🏀 一起运动','☕ 一起去咖啡馆','🍣 一起吃日料','🍲 一起吃火锅','🍦 一起吃冰淇淋','🍓 一起去摘草莓','🛒 一起逛超市','👗 一起逛街','💐 送对方一束花','💇 帮对方吹头发','🤗 拥抱超过一分钟','😴 一起睡到自然醒','🍳 为对方做早餐','📝 一起写情侣清单','🗺️ 一起去陌生的城市','🚗 一起自驾游','🏊 一起游泳','🎿 一起去滑雪','🐬 一起看海豚','🦒 一起去动物园','🌌 一起看极光','🏯 一起去古镇','🌉 一起在桥上散步','🎡 一起坐摩天轮','🗼 一起去看铁塔','🏰 一起去城堡','🌋 一起去看火山','🏜️ 一起去沙漠','🏝️ 一起去无人岛','🛳一起坐邮轮','🎈 一起坐热气球','✈️ 一起出国旅行','🏠 一起装饰房间','🌱 一起养一盆植物','📖 给对方读一本书','🎤 一起去KTV唱歌','👻 一起去鬼屋','🎃 一起过万圣节','🎄 一起装饰圣诞树','🧧 一起包饺子','🎂 一起庆祝生日','💍 一起去挑戒指','📅 一起规划未来','👶 一起想宝宝的名字','🏡 一起看房子','💒 一起去参加婚礼','🫂 在对方难过时陪伴','🤝 牵手走过一条街','👀 对视三分钟','🗣️ 说"我爱你"','💤 一起进入梦乡'];
+// ==================== DATA ====================
+var things0='👫一起看日出|🌅一起看日落|🌟一起看星星|🏕️一起去露营|🏖️一起去海边|⛰️一起爬山|🎢一起去游乐园|🎬一起去看电影|🍳一起做一顿饭|🎂一起做蛋糕|📸拍一组情侣照|💌给对方写一封情书|🎁准备惊喜礼物|🌸一起看花海|🍂一起踩落叶|❄️一起看雪|🎆一起看烟花|🎵去音乐会|🏛️去博物馆|📚去图书馆|🚲一起骑车|🛶一起划船|🐱一起撸猫|🐶一起遛狗|🎨一起画画|🧩一起拼拼图|🎮一起打游戏|🏀一起运动|☕去咖啡馆|🍣吃日料|🍲吃火锅|🍦吃冰淇淋|🍓去摘草莓|🛒逛超市|👗一起逛街|💐送花|💇帮对方吹头发|🤗拥抱一分钟|😴睡到自然醒|🍳为对方做早餐|🗺️去陌生城市|🚗自驾游|🏊游泳|🎿滑雪|🐬看海豚|🦒去动物园|🌌一起看极光|🏯去古镇|🌉在桥上散步|🎡坐摩天轮|🗼去看铁塔|🏰去城堡|🌋看火山|🏜️去沙漠|🛳坐邮轮|🎈坐热气球|✈️出国旅行|🏠装饰房间|🌱养植物|📖给对方读书|🎤去KTV|👻去鬼屋|🎃过万圣节|🎄装饰圣诞树|🧧包饺子|🎂庆祝生日|💍挑戒指|📅规划未来|👶想宝宝名字|🏡看房子|💒参加婚礼|🫂陪伴难过的时刻|🤝牵手走过一条街|👀对视三分钟|🗣️说我爱你|💤一起进入梦乡'.split('|');
 
-let data={locations:[],wishlist:[],anniversaries:[],things:[],letters:[],cdPrimary:null};
-let locations=[],wishlist=[],anniversaries=[],things=[],letters=[];
-let map,markersLayer,wishMarkersLayer,routeLine;
-let showRoute=false,selectedId=null,pendingPhotoFor=null,addingMode=false,wishMode=false;
-let searchMarker=null,searchTimeout=null,currentPage='map',mapTab='visited';
-let cloudLoaded=false;
+var locs=[],wish=[],annis=[],things=[],letters=[],cdPri=null;
+var map,ml,wml,rline,showR=false,selId=null,pp=null,am=false,wm=false,sm=null,stid,cur='map',mt='visited';
 
-// ==================== CLOUD SETUP (Supabase) ====================
-function showSetupModal(){
-  var h='<div class="setup-overlay" onclick="if(event.target===this)closeSetup()"><div class="setup-box" onclick="event.stopPropagation()">'+
-    '<h3>💕 云端同步设置</h3><p>设置后双方打开同一个链接就能共享所有数据</p>'+
-    '<div class="step"><b>📝 步骤：</b><br>1. 去 <b>app.supabase.com</b> 注册免费账号<br>2. 创建项目 → Settings → API → 复制 URL 和 anon key<br>3. 设置一个共享暗号（如 mylove2024）<br>4. 粘贴到下面，双方用相同暗号即可同步</div>'+
-    '<input id="setupSUrl" placeholder="Supabase URL (https://xxx.supabase.co)" value="'+escAttr(SUPABASE_URL)+'">'+
-    '<input id="setupSKey" placeholder="Supabase anon key" value="'+escAttr(SUPABASE_KEY)+'">'+
-    '<input id="setupCode" placeholder="共享暗号 (双方一致即可)" value="'+escAttr(COUPLE_CODE)+'">'+
-    '<button class="setup-btn" onclick="saveCloudConfig()">💾 保存并启用云端同步</button>'+
-    '<div style="margin-top:10px;font-size:10px;color:var(--mauve);cursor:pointer" onclick="closeSetup()">暂不设置，使用本地存储</div>'+
-    '</div></div>';
-  document.getElementById('setupContainer').innerHTML=h;
-}
-function closeSetup(){document.getElementById('setupContainer').innerHTML=''}
-function saveCloudConfig(){
-  // Since we can't save to file, save in localStorage for next time
-  var url=document.getElementById('setupSUrl').value.trim();
-  var key=document.getElementById('setupSKey').value.trim();
-  var code=document.getElementById('setupCode').value.trim()||'mylove2024';
-  if(url&&key){
-    localStorage.setItem('couple_supabase_url',url);
-    localStorage.setItem('couple_supabase_key',key);
-    localStorage.setItem('couple_code',code);
-    toast('✅ 云端已配置！刷新页面生效');
-    closeSetup();
-    // Reload with cloud
-    setTimeout(function(){location.reload()},800);
-  }else{toast('请填写 Supabase URL 和 Key')}
-}
-
-// ==================== BOOT (minimal, bulletproof) ====================
-function boot(){
-  try{initMap()}catch(e){console.error('Map init failed:',e)}
-  try{renderMapSidebar()}catch(e){}
-  try{updateNavCd()}catch(e){}
-}
-// Start: load local data, boot map immediately, cloud sync in background
-try{loadLocalData()}catch(e){}
-try{boot()}catch(e){console.error('Boot failed:',e)}
-// Lazy-render other tabs when first visited
-window._rendered={};
-function lazyRender(page,fn){
-  if(!window._rendered[page]){try{fn()}catch(e){console.error(page+' render failed:',e)};window._rendered[page]=1}
-}
-// Background cloud sync
-updateConnStatus('loading');
-try{
-  fetch(SUPABASE_URL+'/rest/v1/couple_data?couple_code=eq.'+COUPLE_CODE+'&select=data',{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}})
-  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})
-  .then(function(rows){
-    if(rows&&rows.length>0&&rows[0].data){data=rows[0].data;syncRefs();cloudLoaded=true;updateConnStatus('online')}
-    else{updateConnStatus('offline')}
-  }).catch(function(e){console.log('Cloud:',e.message);updateConnStatus('offline')});
-}catch(e){updateConnStatus('offline')}
-// Poll for cloud changes every 8s
-setInterval(function(){
-  if(!cloudLoaded)return;
-  try{
-    fetch(SUPABASE_URL+'/rest/v1/couple_data?couple_code=eq.'+COUPLE_CODE+'&select=data',{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}})
-    .then(function(r){return r.json()}).then(function(rows){
-      if(rows&&rows.length>0&&rows[0].data){data=rows[0].data;syncRefs()}
-    }).catch(function(){});
-  }catch(e){}
-},8000);
-
-function updateConnStatus(status){
-  var dot=document.getElementById('connDot'),label=document.getElementById('connLabel');
-  if(status==='online'){dot.className='conn-dot online';label.textContent='云端'}
-  else if(status==='loading'){dot.className='conn-dot online';dot.style.background='#f0ad4e';label.textContent='连接中'}
-  else{dot.className='conn-dot offline';label.textContent='本地'}
-}
-
-function loadCloudData(cb,silent){
-  fetch(SUPABASE_URL+'/rest/v1/couple_data?couple_code=eq.'+COUPLE_CODE+'&select=data',{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}})
-  .then(function(r){return r.json()}).then(function(rows){
-    if(rows&&rows.length>0&&rows[0].data){
-      data=rows[0].data;syncRefs();
-      if(!silent){updateConnStatus('online')}
-      if(cb)cb(true);
-    }else{if(cb)cb(true)}
-  }).catch(function(e){console.log('Cloud load failed:',e);if(cb)cb(false)});
-}
-
-function saveCloudData(){
-  data.locations=locations;data.wishlist=wishlist;data.anniversaries=anniversaries;data.things=things;data.letters=letters;
-  fetch(SUPABASE_URL+'/rest/v1/couple_data',{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},body:JSON.stringify({couple_code:COUPLE_CODE,data:data,updated_at:new Date().toISOString()})})
-  .catch(function(e){console.log('Save failed:',e)});
-}
-
-// ==================== LOCAL STORAGE ====================
-function loadLocalData(){
-  try{var d=JSON.parse(localStorage.getItem(STORAGE_KEY))||{};
-    data={locations:d.locations||[],wishlist:d.wishlist||[],anniversaries:d.anniversaries||[],things:d.things||DEFAULT_THINGS.map(function(t,i){return{id:'t'+i,text:t,done:false}}),letters:d.letters||[],cdPrimary:d.cdPrimary||null};
-  }catch(e){resetData()}
-  syncRefs();
-}
-function resetData(){data={locations:[],wishlist:[],anniversaries:[],things:DEFAULT_THINGS.map(function(t,i){return{id:'t'+i,text:t,done:false}}),letters:[],cdPrimary:null}}
-function syncRefs(){locations=data.locations;wishlist=data.wishlist;anniversaries=data.anniversaries;things=data.things;letters=data.letters}
-function saveData(){data.locations=locations;data.wishlist=wishlist;data.anniversaries=anniversaries;data.things=things;data.letters=letters;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));if(cloudLoaded)saveCloudData()}
+// ==================== PERSISTENCE ====================
+function load(){try{var d=JSON.parse(localStorage.getItem(SK))||{};locs=d.locations||[];wish=d.wishlist||[];annis=d.anniversaries||[];letters=d.letters||[];things=d.things||things0.map(function(t,i){return{id:'t'+i,text:t,done:false}});cdPri=d.cdPrimary||null}catch(e){reset()}}
+function reset(){locs=[];wish=[];annis=[];letters=[];things=things0.map(function(t,i){return{id:'t'+i,text:t,done:false}});cdPri=null}
+function save(){var d={locations:locs,wishlist:wish,anniversaries:annis,things:things,letters:letters,cdPrimary:cdPri};localStorage.setItem(SK,JSON.stringify(d));saveCloud(d)}
 function uid(){return'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function toast(m){var e=document.createElement('div');e.className='toast';e.textContent=m;document.body.appendChild(e);setTimeout(function(){e.remove()},1800)}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function esa(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
-// ==================== TOAST ====================
-function toast(msg){var el=document.createElement('div');el.className='toast';el.innerHTML=msg;document.body.appendChild(el);setTimeout(function(){el.remove()},1800)}
+// ==================== CLOUD ====================
+function saveCloud(d){fetch(SUPABASE_URL+'/rest/v1/couple_data',{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},body:JSON.stringify({couple_code:CODE,data:d,updated_at:new Date().toISOString()})}).catch(function(){})}
+function fetchCloud(){fetch(SUPABASE_URL+'/rest/v1/couple_data?couple_code=eq.'+CODE+'&select=data',{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}}).then(function(r){return r.json()}).then(function(rows){if(rows&&rows.length>0&&rows[0].data){var d=rows[0].data;locs=d.locations||[];wish=d.wishlist||[];annis=d.anniversaries||[];letters=d.letters||[];things=d.things||things;cdPri=d.cdPrimary||null;save();setDot('g');refreshAll()}}).catch(function(){setDot('r')})}
 
-// ==================== NAVIGATION ====================
-function switchPage(page){currentPage=page;document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});document.getElementById('page_'+page).classList.add('active');var pages=['map','timeline','things','anni','stats','letters'];document.querySelectorAll('.nav-tab')[pages.indexOf(page)].classList.add('active');if(page==='map'){setTimeout(function(){map&&map.invalidateSize()},200)}if(page==='timeline')lazyRender('timeline',renderTimeline);if(page==='things')lazyRender('things',renderThings);if(page==='anni')lazyRender('anni',renderAnni);if(page==='stats')lazyRender('stats',renderStats);if(page==='letters')lazyRender('letters',renderLetters)}
+function setDot(c){var d=document.getElementById('cdot');d.className='dot '+c}
+
+// ==================== NAV ====================
+function go(p){cur=p;document.querySelectorAll('.page').forEach(function(e){e.classList.remove('show')});document.getElementById('p_'+p).classList.add('show');document.querySelectorAll('.tabs button').forEach(function(b){b.classList.remove('on')});document.querySelector('.tabs button:nth-child('+('map,timeline,things,anni,stats,letters'.split(',').indexOf(p)+1)+')').classList.add('on');if(p==='map'){setTimeout(function(){map&&map.invalidateSize()},200)};if(p==='timeline')renderTL();if(p==='things')renderThings();if(p==='anni')renderAnni();if(p==='stats')renderStats();if(p==='letters')renderLetters()}
+
+function refreshAll(){renderMapMarkers();renderSList();renderTL();renderThings();renderAnni();renderStats();renderLetters()}
 
 // ==================== MAP ====================
-function initMap(){try{map=L.map('map',{center:[34.5,108.5],zoom:5,zoomControl:false,attributionControl:false});var tile=L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',{maxZoom:18,subdomains:['1','2','3','4']}).addTo(map);tile.on('tileerror',function(){tile.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');tile.options.subdomains='abc'});markersLayer=L.layerGroup().addTo(map);wishMarkersLayer=L.layerGroup().addTo(map);map.on('click',function(e){if(addingMode){reverseGeocode(e.latlng.lat,e.latlng.lng,function(addr){showPinPreview(e.latlng.lat,e.latlng.lng,addr);addingMode=false;updateHint()})}else if(wishMode){reverseGeocode(e.latlng.lat,e.latlng.lng,function(addr){showPinPreview(e.latlng.lat,e.latlng.lng,addr);wishMode=false;updateHint()})}});map.on('movestart',function(){document.getElementById('pinPreview').style.display='none';document.getElementById('foundLabel').style.display='none'});setTimeout(function(){map&&map.invalidateSize()},300);renderMapMarkers();updateRoute();renderMapSidebar()}catch(e){console.error('initMap failed:',e)}}
-
-function renderMapMarkers(){markersLayer.clearLayers();wishMarkersLayer.clearLayers();locations.forEach(function(loc){var icon=L.divIcon({className:'custom-marker',html:'<div class="marker-dot">'+(loc.emoji||'📍')+'</div>',iconSize:[38,38],iconAnchor:[19,19]});var m=L.marker([loc.lat,loc.lng],{icon:icon}).addTo(markersLayer);m.on('click',function(ev){L.DomEvent.stopPropagation(ev);openDetail(loc.id)})});wishlist.forEach(function(w){var icon=L.divIcon({className:'custom-marker',html:'<div class="marker-dot marker-wish">💭</div>',iconSize:[38,38],iconAnchor:[19,19]});var m=L.marker([w.lat,w.lng],{icon:icon,opacity:0.6}).addTo(wishMarkersLayer);m.on('click',function(ev){L.DomEvent.stopPropagation(ev);promoteWish(w.id)})})}
-function updateRoute(){if(routeLine){map.removeLayer(routeLine);routeLine=null}if(!showRoute||locations.length<2)return;var sorted=locations.slice().sort(function(a,b){return a.createdAt-b.createdAt});routeLine=L.polyline(sorted.map(function(l){return[l.lat,l.lng]}),{color:'#F4ACB7',weight:2.5,opacity:0.5,dashArray:'8 5',lineCap:'round'}).addTo(map)}
-function toggleRoute(){showRoute=!showRoute;document.getElementById('routeBtn').classList.toggle('active',showRoute);updateRoute()}
-function updateHint(){var el=document.getElementById('mapHint');if(addingMode)el.textContent='📍 在地图上点击你去过的地方';else if(wishMode)el.textContent='💭 在地图上点击你想去的地方';else el.textContent='在搜索框输入地名，或点击📍添加去过的地方'}
+function initMap(){
+  map=L.map('map',{center:[34.5,108.5],zoom:5,zoomControl:false,attributionControl:false});
+  L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',{maxZoom:18,subdomains:['1','2','3','4']}).addTo(map);
+  ml=L.layerGroup().addTo(map);wml=L.layerGroup().addTo(map);
+  map.on('click',function(e){if(am){rg(e.latlng.lat,e.latlng.lng,function(a){showPin(e.latlng.lat,e.latlng.lng,a);am=false;uh()})}else if(wm){rg(e.latlng.lat,e.latlng.lng,function(a){showPin(e.latlng.lat,e.latlng.lng,a);wm=false;uh()})}});
+  map.on('movestart',function(){document.getElementById('pin').style.display='none';document.getElementById('plb').style.display='none'});
+  setTimeout(function(){map.invalidateSize()},300);
+  renderMapMarkers();renderSList();
+}
+function renderMapMarkers(){ml.clearLayers();wml.clearLayers();locs.forEach(function(l){var i=L.divIcon({className:'cm',html:'<div class="mdot">'+(l.emoji||'📍')+'</div>',iconSize:[38,38],iconAnchor:[19,19]});var m=L.marker([l.lat,l.lng],{icon:i}).addTo(ml);m.on('click',function(e){L.DomEvent.stopPropagation(e);openDetail(l.id)})});wish.forEach(function(w){var i=L.divIcon({className:'cm',html:'<div class="mdot mwish">💭</div>',iconSize:[38,38],iconAnchor:[19,19]});var m=L.marker([w.lat,w.lng],{icon:i,opacity:0.6}).addTo(wml);m.on('click',function(e){L.DomEvent.stopPropagation(e);promoteWish(w.id)})})}
+function updateRoute(){if(rline){map.removeLayer(rline);rline=null}if(!showR||locs.length<2)return;var s=locs.slice().sort(function(a,b){return a.createdAt-b.createdAt});rline=L.polyline(s.map(function(l){return[l.lat,l.lng]}),{color:'#F4ACB7',weight:2.5,opacity:0.5,dashArray:'8 5',lineCap:'round'}).addTo(map)}
+function toggleRoute(){showR=!showR;document.getElementById('routeBtn').classList.toggle('ac',showR);updateRoute()}
+function uh(){var e=document.getElementById('hint');if(am)e.textContent='📍 在地图上点击你去过的地方';else if(wm)e.textContent='💭 在地图上点击你想去的地方';else e.textContent='在搜索框输入地名，或点击📍添加去过的地方'}
 
 // ==================== GEOCODING ====================
-function searchPlaces(q,cb){var x=new XMLHttpRequest();x.open('GET','https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=zh&q='+encodeURIComponent(q));x.onload=function(){if(x.status===200)try{cb(JSON.parse(x.responseText))}catch(e){cb([])}else cb([])};x.onerror=function(){cb([])};x.send()}
-function reverseGeocode(lat,lng,cb){var x=new XMLHttpRequest();x.open('GET','https://nominatim.openstreetmap.org/reverse?format=json&accept-language=zh&lat='+lat+'&lon='+lng);x.onload=function(){if(x.status===200)try{var d=JSON.parse(x.responseText);cb(d.display_name||'')}catch(e){cb('')}else cb('')};x.onerror=function(){cb('')};x.send()}
+function sq(q,cb){var x=new XMLHttpRequest();x.open('GET','https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=zh&q='+encodeURIComponent(q));x.onload=function(){if(x.status===200)try{cb(JSON.parse(x.responseText))}catch(e){cb([])}else cb([])};x.onerror=function(){cb([])};x.send()}
+function rg(lat,lng,cb){var x=new XMLHttpRequest();x.open('GET','https://nominatim.openstreetmap.org/reverse?format=json&accept-language=zh&lat='+lat+'&lon='+lng);x.onload=function(){if(x.status===200)try{cb(JSON.parse(x.responseText).display_name||'')}catch(e){cb('')}else cb('')};x.onerror=function(){cb('')};x.send()}
 
 // ==================== SEARCH ====================
-function doSearch(){var q=document.getElementById('searchInput').value.trim();if(!q)return;searchPlaces(q,function(r){showSearchResults(r)})}
-function showSearchResults(results){var c=document.getElementById('searchResults');if(!results.length){c.innerHTML='<div class="search-empty">没有找到，试试更具体的名字～</div>';c.classList.add('show');return}c.innerHTML=results.map(function(r,i){return'<div class="search-result-item" onclick="selectSearchResult('+i+')"><div class="sr-icon">📍</div><div class="sr-info"><div class="sr-name">'+esc(r.display_name.split(',')[0])+'</div><div class="sr-addr">'+esc(r.display_name)+'</div></div></div>'}).join('');c.classList.add('show');c._results=results}
-function selectSearchResult(i){var c=document.getElementById('searchResults'),r=c._results[i];if(!r)return;c.classList.remove('show');document.getElementById('searchInput').value=r.display_name.split(',')[0];var lat=parseFloat(r.lat),lng=parseFloat(r.lon);if(searchMarker)map.removeLayer(searchMarker);var icon=L.divIcon({className:'custom-marker',html:'<div class="marker-dot" style="animation:none">📍</div>',iconSize:[38,38],iconAnchor:[19,19]});searchMarker=L.marker([lat,lng],{icon:icon}).addTo(map);map.flyTo([lat,lng],13,{duration:0.7});showPinPreview(lat,lng,r.display_name)}
+function doSearch(){var q=document.getElementById('si').value.trim();if(!q)return;sq(q,function(r){showSR(r)})}
+function showSR(r){var c=document.getElementById('sr');if(!r.length){c.innerHTML='<div style="padding:14px;text-align:center;color:#ccc;font-size:11px">没有找到</div>';c.classList.add('open');return}c.innerHTML=r.map(function(r,i){return'<div class="r" onclick="selSR('+i+')"><span>📍</span><div><div style="font-weight:600;font-size:12px">'+esc(r.display_name.split(',')[0])+'</div><div style="font-size:10px;color:#bbb">'+esc(r.display_name)+'</div></div></div>'}).join('');c.classList.add('open');c._r=r}
+function selSR(i){var c=document.getElementById('sr'),r=c._r[i];if(!r)return;c.classList.remove('open');document.getElementById('si').value=r.display_name.split(',')[0];var lat=parseFloat(r.lat),lng=parseFloat(r.lon);if(sm)map.removeLayer(sm);var icon=L.divIcon({className:'cm',html:'<div class="mdot">📍</div>',iconSize:[38,38],iconAnchor:[19,19]});sm=L.marker([lat,lng],{icon:icon}).addTo(map);map.flyTo([lat,lng],13,{duration:0.7});showPin(lat,lng,r.display_name)}
 
-// ==================== PIN PREVIEW ====================
-function showPinPreview(lat,lng,address){var name=address?address.split(',')[0]:'这个位置';document.getElementById('foundName').textContent=name;document.getElementById('foundAddr').textContent=address||'';var preview=document.getElementById('pinPreview'),label=document.getElementById('foundLabel');var point=map.latLngToContainerPoint([lat,lng]);preview.style.left=point.x+'px';preview.style.top=point.y+'px';preview.style.display='block';label.style.left=point.x+'px';label.style.top=point.y+'px';label.style.display='block';if(searchMarker)map.removeLayer(searchMarker);var icon=L.divIcon({className:'custom-marker',html:'<div class="marker-dot" style="animation:none">📍</div>',iconSize:[38,38],iconAnchor:[19,19]});searchMarker=L.marker([lat,lng],{icon:icon}).addTo(map);setTimeout(function(){var defaultName=address?address.split(',')[0].trim():'';var input=prompt('✨ 给这个地方起个名字吧～',defaultName);if(input&&input.trim()){preview.style.display='none';label.style.display='none';if(searchMarker){map.removeLayer(searchMarker);searchMarker=null}if(wishMode)createWish(lat,lng,input.trim(),address);else createLocation(lat,lng,input.trim(),address)}else{preview.style.display='none';label.style.display='none';if(searchMarker){map.removeLayer(searchMarker);searchMarker=null}}},300)}
+// ==================== PIN ====================
+function showPin(lat,lng,addr){var n=addr?addr.split(',')[0]:'这个位置';document.getElementById('pn').textContent=n;document.getElementById('pa').textContent=addr||'';var pin=document.getElementById('pin'),plb=document.getElementById('plb');var pt=map.latLngToContainerPoint([lat,lng]);pin.style.left=pt.x+'px';pin.style.top=pt.y+'px';pin.style.display='block';plb.style.left=pt.x+'px';plb.style.top=pt.y+'px';plb.style.display='block';if(sm)map.removeLayer(sm);var icon=L.divIcon({className:'cm',html:'<div class="mdot">📍</div>',iconSize:[38,38],iconAnchor:[19,19]});sm=L.marker([lat,lng],{icon:icon}).addTo(map);setTimeout(function(){var def=addr?addr.split(',')[0].trim():'';var inp=prompt('✨ 给这个地方起个名字吧～',def);if(inp&&inp.trim()){pin.style.display='none';plb.style.display='none';if(sm){map.removeLayer(sm);sm=null}if(wm)createWish(lat,lng,inp.trim(),addr);else createLoc(lat,lng,inp.trim(),addr)}else{pin.style.display='none';plb.style.display='none';if(sm){map.removeLayer(sm);sm=null}}},300)}
 
 // ==================== ADD ====================
-function enterAddMode(){addingMode=true;wishMode=false;updateHint();toast('📍 在地图上点击你去过的地方')}
-function enterWishMode(){wishMode=true;addingMode=false;updateHint();toast('💭 在地图上点击你想去的地方')}
-function createLocation(lat,lng,name,address){var loc={id:uid(),name:name,address:address||'',lat:lat,lng:lng,date:new Date().toISOString().slice(0,10),emoji:pickEmoji(name),photos:[],notes:'',memories:[],createdAt:Date.now()};locations.push(loc);saveData();renderMapMarkers();updateRoute();renderMapSidebar();updateNavCd();spawnHearts(12);openDetail(loc.id);toast('✨ '+name+' 已点亮！')}
-function createWish(lat,lng,name,address){wishlist.push({id:uid(),name:name,address:address||'',lat:lat,lng:lng,createdAt:Date.now()});saveData();renderMapMarkers();renderMapSidebar();toast('💭 '+name+' 加入愿望清单！')}
-function promoteWish(id){var idx=wishlist.findIndex(function(w){return w.id===id});if(idx===-1)return;var w=wishlist[idx];wishlist.splice(idx,1);createLocation(w.lat,w.lng,w.name,w.address)}
-function deleteWish(id){wishlist=wishlist.filter(function(w){return w.id!==id});saveData();renderMapMarkers();renderMapSidebar()}
-function pickEmoji(name){var m={海:'🏖️',岛:'🏝️',山:'🏔️',城:'🌃',古:'🏯',园:'🎡',湖:'🌊',花:'🌸',寺:'🏛️',雪:'❄️',沙:'🏜️',林:'🌲',江:'🌉',河:'🌉',塔:'🗼',宫:'🏰',镇:'🏘️',草:'🌿',星:'⭐',夜:'🌙'};for(var k in m){if(name.indexOf(k)!==-1)return m[k]}return'📍'}
+function enterAdd(){am=true;wm=false;uh();toast('📍 在地图上点击你去过的地方')}
+function enterWish(){wm=true;am=false;uh();toast('💭 在地图上点击你想去的地方')}
+function createLoc(lat,lng,name,addr){var loc={id:uid(),name:name,address:addr||'',lat:lat,lng:lng,date:new Date().toISOString().slice(0,10),emoji:pickEmoji(name),photos:[],notes:'',memories:[],createdAt:Date.now()};locs.push(loc);save();renderMapMarkers();updateRoute();renderSList();spawnHearts(12);openDetail(loc.id);toast('✨ '+name+' 已点亮！')}
+function createWish(lat,lng,name,addr){wish.push({id:uid(),name:name,address:addr||'',lat:lat,lng:lng,createdAt:Date.now()});save();renderMapMarkers();renderSList();toast('💭 '+name+' 加入愿望清单！')}
+function promoteWish(id){var i=wish.findIndex(function(w){return w.id===id});if(i===-1)return;var w=wish[i];wish.splice(i,1);createLoc(w.lat,w.lng,w.name,w.address)}
+function deleteWish(id){wish=wish.filter(function(w){return w.id!==id});save();renderMapMarkers();renderSList()}
+function pickEmoji(n){var m={海:'🏖️',岛:'🏝️',山:'🏔️',城:'🌃',古:'🏯',园:'🎡',湖:'🌊',花:'🌸',寺:'🏛️',雪:'❄️',沙:'🏜️',林:'🌲',江:'🌉',河:'🌉',塔:'🗼',宫:'🏰',镇:'🏘️',草:'🌿',星:'⭐',夜:'🌙'};for(var k in m){if(n.indexOf(k)!==-1)return m[k]}return'📍'}
 
-// ==================== MAP SIDEBAR ====================
-function switchMapTab(tab){mapTab=tab;renderMapSidebar()}
-function renderMapSidebar(){var list=document.getElementById('msList'),line=document.getElementById('timelineLine');document.querySelectorAll('.ms-tab').forEach(function(b,i){b.classList.toggle('active',(i===0&&mapTab==='visited')||(i===1&&mapTab==='wishlist'))});if(mapTab==='visited'){if(locations.length===0){line.style.display='none';list.innerHTML='<div class="sidebar-empty"><div class="empty-icon">🗺️</div><p>还没有一起走过的地方</p></div>';return}line.style.display='block';var sorted=locations.slice().sort(function(a,b){return b.createdAt-a.createdAt});list.innerHTML=sorted.map(function(loc){var th=loc.photos.length>0?'<div class="lc-thumb"><img src="'+loc.photos[0]+'"></div>':'<div class="lc-thumb">'+(loc.emoji||'📍')+'</div>';var tags='';if(loc.photos.length)tags+='<span class="lc-tag">📷'+loc.photos.length+'</span>';if(loc.memories.length)tags+='<span class="lc-tag">💬'+loc.memories.length+'</span>';return'<div class="loc-card'+(loc.id===selectedId?' active':'')+'" onclick="openDetail(\''+loc.id+'\')"><div class="lc-row">'+th+'<div class="lc-info"><div class="lc-name">'+esc(loc.name)+'</div>'+(loc.address?'<div class="lc-addr">'+esc(loc.address)+'</div>':'')+'<div class="lc-date">'+loc.date+'</div><div class="lc-meta">'+(tags||'<span style="font-size:9px;color:var(--mauve);opacity:0.3">点击查看</span>')+'</div></div></div></div>'}).join('')}else{line.style.display='none';if(wishlist.length===0){list.innerHTML='<div class="sidebar-empty"><div class="empty-icon">💭</div><p>想去的地方会在这里</p></div>';return}list.innerHTML=wishlist.map(function(w){return'<div class="wish-card" onclick="map.flyTo(['+w.lat+','+w.lng+'],12,{duration:0.5})"><span class="wish-star">💭</span><div class="wish-info"><div class="wish-name">'+esc(w.name)+'</div>'+(w.address?'<div class="wish-addr">'+esc(w.address)+'</div>':'')+'</div><div class="wish-actions"><button class="wish-act go" onclick="event.stopPropagation();promoteWish(\''+w.id+'\')" title="标记为已去">✅</button><button class="wish-act rm" onclick="event.stopPropagation();deleteWish(\''+w.id+'\')" title="删除">✕</button></div></div>'}).join('')}}
+// ==================== SIDEBAR ====================
+function st(t){mt=t;renderSList()}
+function renderSList(){var l=document.getElementById('slist');document.querySelectorAll('.sidehead .t2 button').forEach(function(b,i){b.classList.toggle('on',(i===0&&mt==='visited')||(i===1&&mt==='wishlist'))});if(mt==='visited'){if(!locs.length){l.innerHTML='<div class="empty"><div class="ei">🗺️</div><p>还没有一起走过的地方</p></div>';return}l.innerHTML=locs.slice().sort(function(a,b){return b.createdAt-a.createdAt}).map(function(loc){var ph=loc.photos.length>0?'<img src="'+loc.photos[0]+'" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0">':'<span style="font-size:18px;flex-shrink:0">'+(loc.emoji||'📍')+'</span>';return'<div class="scard'+(loc.id===selId?' on':'')+'" onclick="openDetail(\''+loc.id+'\')" style="display:flex;align-items:center;gap:10px">'+ph+'<div style="flex:1;min-width:0"><div class="sn">'+esc(loc.name)+'</div>'+(loc.address?'<div class="sa">'+esc(loc.address)+'</div>':'')+'<div class="sd">'+loc.date+'</div></div></div>'}).join('')}else{if(!wish.length){l.innerHTML='<div class="empty"><div class="ei">💭</div><p>想去的地方会在这里</p></div>';return}l.innerHTML=wish.map(function(w){return'<div class="scard" onclick="map.flyTo(['+w.lat+','+w.lng+'],12,{duration:0.5})" style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;flex-shrink:0">💭</span><div style="flex:1;min-width:0"><div class="sn">'+esc(w.name)+'</div>'+(w.address?'<div class="sa">'+esc(w.address)+'</div>':'')+'</div><span onclick="event.stopPropagation();promoteWish(\''+w.id+'\')" style="cursor:pointer;font-size:13px" title="标记为已去">✅</span></div>'}).join('')}}
 
-// ==================== DETAIL PANEL ====================
-function openDetail(id){selectedId=id;var loc=findLoc(id);if(!loc)return;renderDetail(loc);renderMapSidebar();map.flyTo([loc.lat,loc.lng],13,{duration:0.6})}
-function closeDetail(){selectedId=null;document.getElementById('detailContainer').innerHTML='';renderMapSidebar()}
-function findLoc(id){return locations.find(function(l){return l.id===id})}
-function renderDetail(loc){var ph='';loc.photos.forEach(function(p,i){ph+='<div class="photo-cell"><img src="'+p+'" onclick="openLightbox(\''+p+'\')"><button class="photo-rm" onclick="event.stopPropagation();rmPhoto(\''+loc.id+'\','+i+')">✕</button></div>'});ph+='<div class="add-photo-cell" onclick="askPhoto(\''+loc.id+'\')">📷<span>添加</span></div>';var mh='';loc.memories.forEach(function(m,i){mh+='<div class="mem-item"><span class="mem-dot"></span><span class="mem-text">'+esc(m.text)+'</span><button class="mem-rm" onclick="rmMemory(\''+loc.id+'\','+i+')">✕</button></div>'});var emojis=['📍','🏖️','🏔️','🏯','🌃','🏝️','🎡','🗼','🏛️','🎢','🌅','🏕️','🛳️','✈️','💒','🌸','🌊','⛰️','🏰','🌋','🏜️','🗽','🕌','❄️','🍜','🏘️'];var ec='';emojis.forEach(function(e){ec+='<button class="emoji-chip'+(loc.emoji===e?' on':'')+'" onclick="setEmoji(\''+loc.id+'\',\''+e+'\')">'+e+'</button>'});document.getElementById('detailContainer').innerHTML='<div class="detail-overlay" onclick="if(event.target===this)saveClose(\''+loc.id+'\')"><div class="detail-panel" onclick="event.stopPropagation()"><div class="detail-top"><button class="detail-close" onclick="saveClose(\''+loc.id+'\')">✕</button></div><div class="detail-content"><div class="detail-hero"><div class="detail-icon">'+(loc.emoji||'📍')+'</div><input class="detail-name-input" value="'+escAttr(loc.name)+'" onchange="updateName(\''+loc.id+'\',this.value)">'+(loc.address?'<div class="detail-addr">📍 '+esc(loc.address)+'</div>':'')+'<div class="detail-date-row">📅 <input class="detail-date-input" type="date" value="'+loc.date+'" onchange="updateDate(\''+loc.id+'\',this.value)"></div></div><div class="sec"><div class="sec-title">📸 照片回忆</div><div class="photo-grid">'+ph+'</div></div><div class="sec"><div class="sec-title">💭 旅行感悟</div><textarea class="notes-input" placeholder="写下在这里的感受..." onchange="updateNotes(\''+loc.id+'\',this.value)">'+esc(loc.notes||'')+'</textarea></div><div class="sec"><div class="sec-title">✨ 小事情·小甜蜜</div><div class="mem-list">'+(mh||'<div style="font-size:10px;color:var(--mauve);padding:5px 0;opacity:0.35">还没有记录～</div>')+'</div><div class="mem-add-row"><input class="mem-input" id="memInp_'+loc.id+'" placeholder="记下可爱的瞬间..." onkeydown="if(event.key===\'Enter\')addMem(\''+loc.id+'\')"><button class="mem-add" onclick="addMem(\''+loc.id+'\')">+</button></div></div><div class="emoji-row"><span class="emoji-label">图标：</span>'+ec+'</div><div class="save-row"><button class="btn-save" onclick="saveClose(\''+loc.id+'\')">💾 保存</button><button class="btn-delete" onclick="deleteLoc(\''+loc.id+'\')" title="删除">🗑</button></div></div></div></div>'}
-function saveClose(id){saveData();renderMapMarkers();updateRoute();renderMapSidebar();updateNavCd();closeDetail()}
-function updateName(id,v){var l=findLoc(id);if(l)l.name=v}
-function updateDate(id,v){var l=findLoc(id);if(l)l.date=v}
-function updateNotes(id,v){var l=findLoc(id);if(l)l.notes=v}
-function setEmoji(id,e){var l=findLoc(id);if(!l)return;l.emoji=e;saveData();renderDetail(l);renderMapMarkers();renderMapSidebar()}
-function askPhoto(id){pendingPhotoFor=id;document.getElementById('photoInput').click()}
-function handlePhotoSelect(e){var file=e.target.files[0];if(!file||!pendingPhotoFor)return;var reader=new FileReader();reader.onload=function(ev){shrinkImg(ev.target.result,800,function(r){var l=findLoc(pendingPhotoFor);if(l){l.photos.push(r);saveData();renderDetail(l);renderMapSidebar()}pendingPhotoFor=null})};reader.readAsDataURL(file);e.target.value=''}
-function shrinkImg(u,w,cb){var i=new Image();i.onload=function(){if(i.width<=w){cb(u);return}var cv=document.createElement('canvas');var r=w/i.width;cv.width=w;cv.height=i.height*r;cv.getContext('2d').drawImage(i,0,0,cv.width,cv.height);cb(cv.toDataURL('image/jpeg',0.8))};i.src=u}
-function rmPhoto(lid,i){var l=findLoc(lid);if(!l)return;l.photos.splice(i,1);saveData();renderDetail(l);renderMapSidebar()}
-function addMem(lid){var inp=document.getElementById('memInp_'+lid);if(!inp)return;var t=inp.value.trim();if(!t)return;var l=findLoc(lid);if(!l)return;l.memories.push({text:t});inp.value='';saveData();renderDetail(l);setTimeout(function(){var ni=document.getElementById('memInp_'+lid);if(ni)ni.focus()},40)}
-function rmMemory(lid,i){var l=findLoc(lid);if(!l)return;l.memories.splice(i,1);saveData();renderDetail(l)}
-function deleteLoc(lid){if(!confirm('确定删除吗？'))return;locations=locations.filter(function(l){return l.id!==lid});if(selectedId===lid)closeDetail();saveData();renderMapMarkers();updateRoute();renderMapSidebar();updateNavCd();toast('已删除')}
-function openLightbox(src){document.getElementById('lightboxContainer').innerHTML='<div class="lightbox" onclick="this.parentNode.innerHTML=\'\'"><img src="'+src+'"></div>'}
+// ==================== DETAIL ====================
+function openDetail(id){selId=id;var loc=findLoc(id);if(!loc)return;renderDetail(loc);renderSList();map.flyTo([loc.lat,loc.lng],13,{duration:0.6})}
+function closeDetail(){selId=null;document.getElementById('dlg').innerHTML='';renderSList()}
+function findLoc(id){return locs.find(function(l){return l.id===id})}
+function renderDetail(loc){var ph='';loc.photos.forEach(function(p,i){ph+='<div class="pc"><img src="'+p+'" onclick="openLB(\''+p+'\')"><button class="pr" onclick="event.stopPropagation();rmPhoto(\''+loc.id+'\','+i+')">✕</button></div>'});ph+='<div class="add" onclick="askPhoto(\''+loc.id+'\')">📷<span>添加</span></div>';var mh='';loc.memories.forEach(function(m,i){mh+='<div class="mi"><span class="md"></span><span class="mx">'+esc(m.text)+'</span><button class="mr" onclick="rmMemory(\''+loc.id+'\','+i+')">✕</button></div>'});var emos='📍,🏖️,🏔️,🏯,🌃,🏝️,🎡,🗼,🏛️,🎢,🌅,🏕️,🛳️,✈️,💒,🌸,🌊,⛰️,🏰,🌋,🏜️,🗽,🕌,❄️,🍜,🏘️'.split(',');var ec='';emos.forEach(function(e){ec+='<button class="emos-btn'+(loc.emoji===e?' on':'')+'" onclick="setEmoji(\''+loc.id+'\',\''+e+'\')">'+e+'</button>'});document.getElementById('dlg').innerHTML='<div class="dovl" onclick="if(event.target===this)saveClose(\''+loc.id+'\')"><div class="dpanel" onclick="event.stopPropagation()"><div class="dtop"><button onclick="saveClose(\''+loc.id+'\')">✕</button></div><div class="din"><div class="dhero"><div class="di">'+(loc.emoji||'📍')+'</div><input value="'+esa(loc.name)+'" onchange="updateName(\''+loc.id+'\',this.value)">'+(loc.address?'<div class="da">📍 '+esc(loc.address)+'</div>':'')+'<div style="margin-top:4px">📅 <input type="date" value="'+loc.date+'" onchange="updateDate(\''+loc.id+'\',this.value)" style="border:none;background:none;font-size:11px;font-family:inherit;color:#bbb" id="dt_'+loc.id+'"></div></div><div class="sec"><h4>📸 照片回忆</h4><div class="pgrid">'+ph+'</div></div><div class="sec"><h4>💭 旅行感悟</h4><textarea class="ta" placeholder="写下在这里的感受..." onchange="updateNotes(\''+loc.id+'\',this.value)">'+esc(loc.notes||'')+'</textarea></div><div class="sec"><h4>✨ 小事情·小甜蜜</h4><div class="mems">'+(mh||'<div style="font-size:10px;color:#ddd;padding:4px 0">还没有记录～</div>')+'</div><div class="mar"><input id="memInp_'+loc.id+'" placeholder="记下可爱的瞬间..." onkeydown="if(event.key===\'Enter\')addMem(\''+loc.id+'\')"><button onclick="addMem(\''+loc.id+'\')">+</button></div></div><div class="emos">'+ec+'</div><div class="saverow"><button class="save" onclick="saveClose(\''+loc.id+'\')">💾 保存</button><button class="del" onclick="deleteLoc(\''+loc.id+'\')">🗑</button></div></div></div></div>'}
+function saveClose(id){save();renderMapMarkers();updateRoute();renderSList();closeDetail()}
+function updateName(id,v){var l=findLoc(id);if(l)l.name=v}function updateDate(id,v){var l=findLoc(id);if(l)l.date=v}function updateNotes(id,v){var l=findLoc(id);if(l)l.notes=v}
+function setEmoji(id,e){var l=findLoc(id);if(!l)return;l.emoji=e;save();renderDetail(l);renderMapMarkers();renderSList()}
+function askPhoto(id){pp=id;document.getElementById('pi').click()}
+function handlePhoto(f){var file=f.target.files[0];if(!file||!pp)return;var r=new FileReader();r.onload=function(e){shrink(e.target.result,800,function(d){var l=findLoc(pp);if(l){l.photos.push(d);save();renderDetail(l);renderSList()}pp=null})};r.readAsDataURL(file);f.target.value=''}
+function shrink(u,w,cb){var i=new Image();i.onload=function(){if(i.width<=w){cb(u);return}var c=document.createElement('canvas');var r=w/i.width;c.width=w;c.height=i.height*r;c.getContext('2d').drawImage(i,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',0.8))};i.src=u}
+function rmPhoto(lid,i){var l=findLoc(lid);if(!l)return;l.photos.splice(i,1);save();renderDetail(l);renderSList()}
+function addMem(lid){var inp=document.getElementById('memInp_'+lid);if(!inp)return;var t=inp.value.trim();if(!t)return;var l=findLoc(lid);if(!l)return;l.memories.push({text:t});inp.value='';save();renderDetail(l);setTimeout(function(){var ni=document.getElementById('memInp_'+lid);if(ni)ni.focus()},40)}
+function rmMemory(lid,i){var l=findLoc(lid);if(!l)return;l.memories.splice(i,1);save();renderDetail(l)}
+function deleteLoc(lid){if(!confirm('确定删除吗？'))return;locs=locs.filter(function(l){return l.id!==lid});if(selId===lid)closeDetail();save();renderMapMarkers();updateRoute();renderSList();toast('已删除')}
+function openLB(src){document.getElementById('lb').innerHTML='<div class="lb" onclick="this.parentNode.innerHTML=\'\'"><img src="'+src+'"></div>'}
 
 // ==================== TIMELINE ====================
-function renderTimeline(){var c=document.getElementById('timelineContainer');var items=[];locations.forEach(function(loc){items.push({type:'travel',name:loc.name,date:loc.date,createdAt:loc.createdAt,data:loc});loc.memories.forEach(function(m,i){items.push({type:'memory',name:loc.name+' 的小甜蜜',date:loc.date,createdAt:loc.createdAt+(i+1),data:Object.assign({},m,{locName:loc.name})})})});items.sort(function(a,b){return a.createdAt-b.createdAt});if(items.length===0){c.innerHTML='<div class="tl-hero"><h2>📖 我们的故事</h2><p>还没有记录，去地图添加旅行地点吧～</p></div>';return}var totalPhotos=locations.reduce(function(s,l){return s+l.photos.length},0);var totalMems=locations.reduce(function(s,l){return s+l.memories.length},0);var h='<div class="tl-hero"><h2>📖 我们的恋爱故事</h2><p>每一次心动，都值得被记住</p><div class="tl-hero-stats"><div class="tl-stat"><span class="tl-stat-num">'+locations.length+'</span><span class="tl-stat-label">座城市</span></div><div class="tl-stat"><span class="tl-stat-num">'+totalPhotos+'</span><span class="tl-stat-label">张照片</span></div><div class="tl-stat"><span class="tl-stat-num">'+totalMems+'</span><span class="tl-stat-label">件小事</span></div></div></div><div class="tl-center"><div class="tl-line"></div>';items.forEach(function(item,i){var dotClass='tl-dot'+(item.type==='travel'&&item.data.photos&&item.data.photos.length>0?' has-photo':'');h+='<div class="tl-item"><div class="'+dotClass+'"></div><div class="tl-card" onclick="'+(item.type==='travel'?"switchPage('map');openDetail('"+item.data.id+"')":'')+'">';if(item.type==='travel'){h+='<div class="tl-card-type">📍 旅行</div><h4>'+esc(item.name)+'</h4><div class="tl-card-date">'+item.date+(item.data.address?' · '+esc(item.data.address.split(',')[0]):'')+'</div>';if(item.data.photos&&item.data.photos.length>0){h+='<div class="tl-photos">';item.data.photos.slice(0,3).forEach(function(p){h+='<img class="tl-photo" src="'+p+'" onclick="event.stopPropagation();openLightbox(\''+p+'\')">'});if(item.data.photos.length>3)h+='<span style="font-size:10px;color:var(--mauve);align-self:flex-end">+'+ (item.data.photos.length-3)+'</span>';h+='</div>'}if(item.data.notes)h+='<div class="tl-excerpt">'+esc(item.data.notes.slice(0,100))+(item.data.notes.length>100?'...':'')+'</div>';if(item.data.memories&&item.data.memories.length>0){h+='<div class="tl-memories">';item.data.memories.forEach(function(m){h+='<div class="tl-mem"><span class="tl-mem-dot"></span><span>'+esc(m.text)+'</span></div>'});h+='</div>'}}h+='</div></div>'});h+='</div>';c.innerHTML=h}
+function renderTL(){var c=document.getElementById('tl');var items=[];locs.forEach(function(loc){items.push({type:'travel',name:loc.name,date:loc.date,createdAt:loc.createdAt,data:loc,id:loc.id})});items.sort(function(a,b){return a.createdAt-b.createdAt});if(!items.length){c.innerHTML='<div class="hd"><h2>📖 我们的故事</h2><p>还没有记录，去地图添加旅行地点吧～</p></div>';return}var tp=locs.reduce(function(s,l){return s+l.photos.length},0);var tm=locs.reduce(function(s,l){return s+l.memories.length},0);var h='<div class="hd"><h2>📖 我们的恋爱故事</h2><p>每一次心动，都值得被记住</p><div style="display:flex;justify-content:center;gap:20px;margin-top:12px;font-size:22px;font-weight:700;color:#E8879B"><span>'+locs.length+'<small style="font-size:10px;color:#ccc">城市</small></span><span>'+tp+'<small style="font-size:10px;color:#ccc">照片</small></span><span>'+tm+'<small style="font-size:10px;color:#ccc">回忆</small></span></div></div><div style="position:relative;max-width:500px;margin:0 auto"><div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,#FFCAD4,#F4ACB7,#FFCAD4);opacity:0.3;transform:translateX(-50%)"></div>';items.forEach(function(item,i){h+='<div style="position:relative;margin-bottom:22px;padding-'+(i%2===0?'right':'left')+':calc(50% + 20px);text-align:'+(i%2===0?'right':'left')+'"><div style="position:absolute;left:50%;top:10px;transform:translate(-50%,0);width:10px;height:10px;background:#F4ACB7;border:2px solid #fff;border-radius:50%;z-index:3;box-shadow:0 0 0 4px rgba(244,172,183,0.1)"></div><div style="display:inline-block;background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);border:1px solid #f0f0f0;cursor:pointer;max-width:100%;transition:transform 0.12s,box-shadow 0.12s" onclick="go(\'map\');setTimeout(function(){openDetail(\''+item.id+'\')},100)"><div style="font-size:9px;color:#E8879B;font-weight:600;letter-spacing:1px;margin-bottom:2px">📍 旅行</div><div style="font-size:13px;font-weight:600">'+esc(item.name)+'</div><div style="font-size:10px;color:#bbb;margin-top:2px">'+item.date+'</div>'+(item.data.notes?'<div style="font-size:11px;color:#999;line-height:1.5;margin-top:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">'+esc(item.data.notes)+'</div>':'')+'</div></div>'});h+='</div>';c.innerHTML=h}
 
 // ==================== 100 THINGS ====================
-function renderThings(){var c=document.getElementById('thingsContent');var doneCount=things.filter(function(t){return t.done}).length;var pct=things.length>0?Math.round(doneCount/things.length*100):0;var h='<div class="things-header"><h2>✅ 情侣必做的100件小事</h2><p>一起完成这些小目标吧～</p><div class="things-progress"><div class="things-bar-wrap"><div class="things-bar-fill" style="width:'+pct+'%"></div></div><span class="things-pct">'+pct+'%</span></div></div><div class="things-grid">';things.forEach(function(t){h+='<div class="thing-card'+(t.done?' done':'')+'" onclick="toggleThing(\''+t.id+'\')"><div class="thing-check">'+(t.done?'✓':'')+'</div><span class="thing-name">'+esc(t.text)+'</span></div>'});h+='</div>';c.innerHTML=h}
-function toggleThing(id){var t=things.find(function(t){return t.id===id});if(!t)return;t.done=!t.done;saveData();renderThings();if(t.done)spawnHearts(6)}
+function renderThings(){var c=document.getElementById('tg');var dc=things.filter(function(t){return t.done}).length;var pct=things.length>0?Math.round(dc/things.length*100):0;var h='<div class="hd"><h2>✅ 情侣必做的100件小事</h2><div class="barwrap"><div class="bar"><div class="fill" style="width:'+pct+'%"></div></div><span class="pct">'+pct+'%</span></div></div><div class="thingsgrid">';things.forEach(function(t){h+='<div class="tcard'+(t.done?' done':'')+'" onclick="toggleThing(\''+t.id+'\')"><div class="chk">'+(t.done?'✓':'')+'</div><span>'+esc(t.text)+'</span></div>'});h+='</div>';c.innerHTML=h}
+function toggleThing(id){var t=things.find(function(t){return t.id===id});if(!t)return;t.done=!t.done;save();renderThings();if(t.done)spawnHearts(6)}
 
 // ==================== ANNIVERSARIES ====================
-function renderAnni(){var c=document.getElementById('anniContent');var h='<div class="anni-header"><h2>💝 纪念日</h2></div><div class="anni-grid">';anniversaries.forEach(function(a){var diff=calcDays(a.date);var cdText=diff>=0?'还有 '+diff+' 天':'已过 '+Math.abs(diff)+' 天';h+='<div class="anni-card" onclick="openAnniModal(\''+a.id+'\')"><button class="anni-rm" onclick="event.stopPropagation();deleteAnni(\''+a.id+'\')">✕</button><div class="anni-icon">'+(a.emoji||'💝')+'</div><div class="anni-name">'+esc(a.name)+'</div><div class="anni-date-display">'+a.date+'</div><div class="anni-countdown">'+cdText+'</div></div>'});h+='<button class="anni-add" onclick="openAnniModal()">➕ 添加纪念日</button></div>';c.innerHTML=h}
-function calcDays(dateStr){var t=new Date(dateStr);t.setHours(0,0,0,0);var n=new Date();n.setHours(0,0,0,0);return Math.ceil((t-n)/86400000)}
-function openAnniModal(id){var a=id?anniversaries.find(function(a){return a.id===id}):null;document.getElementById('modalContainer').innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal-box" onclick="event.stopPropagation()"><h4>'+(a?'编辑纪念日':'💝 添加纪念日')+'</h4><input id="anniNameInput" placeholder="名称，如 在一起的日子" value="'+(a?escAttr(a.name):'')+'"><input id="anniDateInput" type="date" value="'+(a?a.date:'')+'"><input id="anniEmojiInput" placeholder="图标" value="'+(a?(a.emoji||'💝'):'💝')+'" maxlength="4" style="width:80px"><div class="btn-row"><button class="mbtn ghost" onclick="closeModal()">取消</button><button class="mbtn primary" onclick="saveAnni(\''+(a?a.id:'')+'\')">保存</button></div></div></div>'}
-function saveAnni(id){var name=document.getElementById('anniNameInput').value.trim();var date=document.getElementById('anniDateInput').value;var emoji=document.getElementById('anniEmojiInput').value.trim()||'💝';if(!name||!date)return;if(id){var a=anniversaries.find(function(a){return a.id===id});if(a){a.name=name;a.date=date;a.emoji=emoji}}else{anniversaries.push({id:uid(),name:name,date:date,emoji:emoji})}anniversaries.sort(function(a,b){return new Date(a.date)-new Date(b.date)});if(!data.cdPrimary&&anniversaries.length>0)data.cdPrimary=anniversaries[0].id;saveData();closeModal();renderAnni();updateNavCd()}
-function deleteAnni(id){if(!confirm('确定删除吗？'))return;anniversaries=anniversaries.filter(function(a){return a.id!==id});if(data.cdPrimary===id)data.cdPrimary=anniversaries.length>0?anniversaries[0].id:null;saveData();renderAnni();updateNavCd()}
-function closeModal(){document.getElementById('modalContainer').innerHTML=''}
-function updateNavCd(){if(anniversaries.length===0){document.getElementById('cdDays').textContent='--';return}var a=anniversaries.find(function(a){return a.id===data.cdPrimary})||anniversaries[0];var days=Math.abs(calcDays(a.date));document.getElementById('cdDays').textContent=days;var label=calcDays(a.date)>=0?'天':'天前';document.getElementById('navCd').innerHTML='💝 <b>'+days+'</b> '+label}
+function renderAnni(){var c=document.getElementById('ag');var h='<div class="hd"><h2>💝 纪念日</h2></div><div class="annigrid">';annis.forEach(function(a){var d=cd(a.date);var t=d>=0?'还有 '+d+' 天':'已过 '+Math.abs(d)+' 天';h+='<div class="acard" onclick="openAnniModal(\''+a.id+'\')"><button class="arm" onclick="event.stopPropagation();deleteAnni(\''+a.id+'\')">✕</button><div class="ai">'+(a.emoji||'💝')+'</div><div class="an">'+esc(a.name)+'</div><div class="ad">'+a.date+'</div><div class="ac">'+t+'</div></div>'});h+='<div class="aadd" onclick="openAnniModal()">➕ 添加纪念日</div></div>';c.innerHTML=h}
+function cd(d){var t=new Date(d);t.setHours(0,0,0,0);var n=new Date();n.setHours(0,0,0,0);return Math.ceil((t-n)/86400000)}
+function openAnniModal(id){var a=id?annis.find(function(a){return a.id===id}):null;document.getElementById('modal').innerHTML='<div class="ovl" onclick="if(event.target===this)closeModal()"><div class="mdl" onclick="event.stopPropagation()"><h4>'+(a?'编辑纪念日':'💝 添加纪念日')+'</h4><input id="amName" placeholder="名称" value="'+(a?esa(a.name):'')+'"><input id="amDate" type="date" value="'+(a?a.date:'')+'"><input id="amEmoji" placeholder="图标" value="'+(a?(a.emoji||'💝'):'💝')+'" maxlength="4" style="width:80px"><div class="mr"><button class="no" onclick="closeModal()">取消</button><button class="ok" onclick="saveAnni(\''+(a?a.id:'')+'\')">保存</button></div></div></div>'}
+function saveAnni(id){var n=document.getElementById('amName').value.trim();var d=document.getElementById('amDate').value;var e=document.getElementById('amEmoji').value.trim()||'💝';if(!n||!d)return;if(id){var a=annis.find(function(a){return a.id===id});if(a){a.name=n;a.date=d;a.emoji=e}}else{annis.push({id:uid(),name:n,date:d,emoji:e})}annis.sort(function(a,b){return new Date(a.date)-new Date(b.date)});if(!cdPri&&annis.length>0)cdPri=annis[0].id;save();closeModal();renderAnni()}
+function deleteAnni(id){if(!confirm('确定删除吗？'))return;annis=annis.filter(function(a){return a.id!==id});if(cdPri===id)cdPri=annis.length>0?annis[0].id:null;save();renderAnni()}
+function closeModal(){document.getElementById('modal').innerHTML=''}
 
 // ==================== STATS ====================
-function renderStats(){var c=document.getElementById('statsContent');var totalPhotos=locations.reduce(function(s,l){return s+l.photos.length},0);var totalMems=locations.reduce(function(s,l){return s+l.memories.length},0);var doneThings=things.filter(function(t){return t.done}).length;var totalDays=0;if(anniversaries.length>0){var f=new Date(anniversaries[0].date);f.setHours(0,0,0,0);var n=new Date();n.setHours(0,0,0,0);totalDays=Math.max(0,Math.floor((n-f)/86400000))}var years=Math.floor(totalDays/365),months=Math.floor((totalDays%365)/30),weeks=Math.floor(totalDays/7);var h='<div class="stats-header"><h2>📊 恋爱统计</h2></div><div style="background:linear-gradient(135deg,#FFF5F7 0%,#FFF0F3 40%,#FFE5D9 100%);border-radius:18px;padding:28px 20px;text-align:center;margin-bottom:14px;border:1px solid rgba(244,172,183,0.08);position:relative;overflow:hidden"><div style="position:absolute;top:-25px;right:-15px;font-size:70px;opacity:0.03">💕</div><div style="font-size:10px;color:var(--mauve);letter-spacing:1px;margin-bottom:6px">在一起的时光</div><div style="font-size:50px;font-weight:800;background:linear-gradient(135deg,#E8879B 0%,#C87080 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.05">'+totalDays+'</div><div style="font-size:12px;color:var(--text-light);margin-top:2px">天</div><div style="display:flex;justify-content:center;gap:24px;margin-top:16px;font-size:11px;color:var(--mauve)"><div style="text-align:center"><div style="font-size:20px;font-weight:700;color:var(--pink-mid)">'+years+'</div><div style="font-size:9px">年</div></div><div style="text-align:center"><div style="font-size:20px;font-weight:700;color:var(--pink-mid)">'+months+'</div><div style="font-size:9px">个月</div></div><div style="text-align:center"><div style="font-size:20px;font-weight:700;color:var(--pink-mid)">'+weeks+'</div><div style="font-size:9px">周</div></div><div style="text-align:center"><div style="font-size:20px;font-weight:700;color:var(--pink-mid)">'+totalDays+'</div><div style="font-size:9px">天</div></div></div></div><div class="stats-cards"><div class="stats-card"><div class="sc-icon">🗺️</div><div class="sc-num">'+locations.length+'</div><div class="sc-label">点亮的地方</div></div><div class="stats-card"><div class="sc-icon">📸</div><div class="sc-num">'+totalPhotos+'</div><div class="sc-label">共同的照片</div></div><div class="stats-card"><div class="sc-icon">💬</div><div class="sc-num">'+totalMems+'</div><div class="sc-label">甜蜜回忆</div></div><div class="stats-card"><div class="sc-icon">✅</div><div class="sc-num">'+doneThings+'/<wbr>'+things.length+'</div><div class="sc-label">完成的小事</div></div><div class="stats-card"><div class="sc-icon">💝</div><div class="sc-num">'+anniversaries.length+'</div><div class="sc-label">纪念日</div></div><div class="stats-card"><div class="sc-icon">💌</div><div class="sc-num">'+letters.length+'</div><div class="sc-label">信件</div></div></div>';if(locations.length>0){h+='<div class="stats-city-cloud"><h4>🏙️ 一起去过的地方</h4><div class="city-tags">';locations.forEach(function(loc){h+='<span class="city-tag" onclick="switchPage(\'map\');setTimeout(function(){openDetail(\''+loc.id+'\')},200)">'+(loc.emoji||'📍')+' '+esc(loc.name)+'</span>'});h+='</div></div>'}h+='<div style="text-align:center;padding:10px 0 30px"><button onclick="exportData()" style="padding:10px 24px;background:white;border:1.5px solid rgba(244,172,183,0.15);border-radius:20px;font-size:11px;color:var(--text-light);cursor:pointer;font-family:inherit;transition:transform 0.12s" onmouseenter="this.style.transform=\'scale(1.03)\'" onmouseleave="this.style.transform=\'scale(1)\'">📦 导出数据备份</button></div>';c.innerHTML=h}
+function renderStats(){var c=document.getElementById('sg');var tp=locs.reduce(function(s,l){return s+l.photos.length},0);var tm=locs.reduce(function(s,l){return s+l.memories.length},0);var dc=things.filter(function(t){return t.done}).length;var td=0;if(annis.length>0){var f=new Date(annis[0].date);f.setHours(0,0,0,0);var n=new Date();n.setHours(0,0,0,0);td=Math.max(0,Math.floor((n-f)/86400000))}var y=Math.floor(td/365),m=Math.floor((td%365)/30),w=Math.floor(td/7);var h='<div class="hd"><h2>📊 恋爱统计</h2></div><div class="banner"><div class="bg">💕</div><div style="font-size:10px;color:#bbb;margin-bottom:4px">在一起的时光</div><div class="bn">'+td+'</div><div style="font-size:11px;color:#bbb">天</div><div class="cols"><div><b>'+y+'</b>年</div><div><b>'+m+'</b>个月</div><div><b>'+w+'</b>周</div><div><b>'+td+'</b>天</div></div></div><div class="statsgrid"><div class="statsc"><div class="si">🗺️</div><div class="sn">'+locs.length+'</div><div class="sl">点亮的地方</div></div><div class="statsc"><div class="si">📸</div><div class="sn">'+tp+'</div><div class="sl">照片</div></div><div class="statsc"><div class="si">💬</div><div class="sn">'+tm+'</div><div class="sl">甜蜜回忆</div></div><div class="statsc"><div class="si">✅</div><div class="sn">'+dc+'/'+things.length+'</div><div class="sl">完成的小事</div></div><div class="statsc"><div class="si">💝</div><div class="sn">'+annis.length+'</div><div class="sl">纪念日</div></div><div class="statsc"><div class="si">💌</div><div class="sn">'+letters.length+'</div><div class="sl">信件</div></div></div>';if(locs.length>0){h+='<div style="background:#fff;border:1px solid #f0f0f0;border-radius:12px;padding:14px;margin-bottom:10px"><h4 style="font-size:11px;color:#E8879B;margin-bottom:8px">🏙️ 一起去过的地方</h4><div class="tags">';locs.forEach(function(loc){h+='<span onclick="go(\'map\');setTimeout(function(){openDetail(\''+loc.id+'\')},200)">'+(loc.emoji||'📍')+' '+esc(loc.name)+'</span>'});h+='</div></div>'}h+='<div style="text-align:center;padding:10px 0 20px"><button onclick="exportData()" style="padding:8px 20px;background:#fff;border:1px solid #eee;border-radius:18px;font-size:11px;color:#999;cursor:pointer;font-family:inherit">📦 导出数据</button></div>';c.innerHTML=h}
+function exportData(){var eo={locations:locs,wishlist:wish,anniversaries:annis,things:things,letters:letters,exportDate:new Date().toISOString()};var blob=new Blob([JSON.stringify(eo,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='couple-hub-'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('📦 已导出！')}
 
 // ==================== LETTERS ====================
-function renderLetters(){var c=document.getElementById('lettersContent');var h='<div class="things-header"><h2>💌 我们的悄悄话</h2></div><div style="max-width:600px;margin:0 auto;padding:0 0 24px"><div style="background:white;border-radius:12px;padding:18px;margin-bottom:14px;border:1px solid rgba(0,0,0,0.04)"><input id="letterTitle" placeholder="信件标题..." style="width:100%;padding:8px 12px;border:2px solid rgba(244,172,183,0.1);border-radius:10px;font-size:12px;font-family:inherit;outline:none;margin-bottom:8px;color:var(--text)" maxlength="100"><textarea id="letterBody" placeholder="写下想说的话... 💌" style="width:100%;min-height:100px;padding:10px 12px;border:2px solid rgba(244,172,183,0.1);border-radius:10px;font-size:12px;font-family:inherit;outline:none;resize:vertical;line-height:1.6;color:var(--text)"></textarea><div style="text-align:right;margin-top:8px"><button onclick="addLetter()" style="padding:8px 22px;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:white;border:none;border-radius:18px;font-size:12px;font-weight:600;cursor:pointer">💌 存入信箱</button></div></div>';if(letters.length===0){h+='<div style="text-align:center;padding:32px;color:var(--text-light)"><div style="font-size:36px;margin-bottom:6px">📮</div><p style="font-size:11px">信箱还是空的</p></div>'}else{letters.slice().reverse().forEach(function(l){h+='<div class="letter-card" style="background:white;border-radius:12px;padding:16px 20px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.03);position:relative;transition:transform 0.15s,box-shadow 0.15s"><button onclick="deleteLetter(\''+l.id+'\')" style="position:absolute;top:8px;right:12px;width:24px;height:24px;border:none;background:transparent;color:var(--mauve);cursor:pointer;border-radius:50%;font-size:11px;opacity:0.25">✕</button><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;padding-right:28px">💌 '+esc(l.title||'悄悄话')+'</div><div style="font-size:11px;color:var(--text-light);line-height:1.6;white-space:pre-wrap">'+esc(l.body)+'</div><div style="font-size:9px;color:var(--mauve);opacity:0.4;margin-top:8px">'+l.date+'</div></div>'})}h+='</div>';c.innerHTML=h}
-function addLetter(){var title=document.getElementById('letterTitle').value.trim();var body=document.getElementById('letterBody').value.trim();if(!body)return;letters.push({id:uid(),title:title||'悄悄话',body:body,date:new Date().toISOString().slice(0,10),createdAt:Date.now()});saveData();renderLetters();spawnHearts(8);toast('💌 信件已存入！')}
-function deleteLetter(id){letters=letters.filter(function(l){return l.id!==id});saveData();renderLetters()}
-
-// ==================== EXPORT ====================
-function exportData(){var eo={locations:locations,wishlist:wishlist,anniversaries:anniversaries,things:things,letters:letters,exportDate:new Date().toISOString()};var blob=new Blob([JSON.stringify(eo,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='couple-hub-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('📦 数据已导出！')}
+function renderLetters(){var c=document.getElementById('lg');var h='<div class="hd"><h2>💌 我们的悄悄话</h2></div><div style="max-width:580px;margin:0 auto"><div style="background:#fff;border:1px solid #f0f0f0;border-radius:12px;padding:16px;margin-bottom:12px"><input id="lt" placeholder="信件标题..." style="width:100%;padding:8px 12px;border:2px solid #f0f0f0;border-radius:10px;font-size:12px;font-family:inherit;outline:none;margin-bottom:8px;color:#4A3040" maxlength="100"><textarea id="lb" placeholder="写下想说的话... 💌" style="width:100%;min-height:90px;padding:10px 12px;border:2px solid #f0f0f0;border-radius:10px;font-size:12px;font-family:inherit;outline:none;resize:vertical;line-height:1.6;color:#4A3040"></textarea><div style="text-align:right;margin-top:8px"><button onclick="addLetter()" style="padding:8px 20px;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:#fff;border:none;border-radius:16px;font-size:12px;font-weight:600;cursor:pointer">💌 存入信箱</button></div></div>';if(!letters.length){h+='<div style="text-align:center;padding:30px;color:#ccc"><div style="font-size:32px;margin-bottom:6px">📮</div><p style="font-size:11px">信箱是空的</p></div>'}else{letters.slice().reverse().forEach(function(l){h+='<div class="lcard"><button class="lrm" onclick="deleteLetter(\''+l.id+'\')">✕</button><h4>💌 '+esc(l.title||'悄悄话')+'</h4><p>'+esc(l.body)+'</p><div class="ld">'+l.date+'</div></div>'})}h+='</div>';c.innerHTML=h}
+function addLetter(){var t=document.getElementById('lt').value.trim();var b=document.getElementById('lb').value.trim();if(!b)return;letters.push({id:uid(),title:t||'悄悄话',body:b,date:new Date().toISOString().slice(0,10),createdAt:Date.now()});save();renderLetters();toast('💌 已存入！')}
+function deleteLetter(id){letters=letters.filter(function(l){return l.id!==id});save();renderLetters()}
 
 // ==================== HEARTS ====================
-function spawnHearts(count){var ct=document.getElementById('heartsLayer');var e=['💕','💖','💗','💝','✨','🌸','💐','🩷','💓','🌟'];var f=document.createDocumentFragment();for(var i=0;i<count;i++){var el=document.createElement('span');el.className='heart-fly';el.textContent=e[Math.floor(Math.random()*e.length)];el.style.left=(10+Math.random()*80)+'%';el.style.top=(50+Math.random()*40)+'%';el.style.animationDuration=(1.2+Math.random()*1.5)+'s';el.style.animationDelay=Math.random()*0.5+'s';el.style.fontSize=(12+Math.random()*18)+'px';f.appendChild(el)}ct.appendChild(f);setTimeout(function(){ct.innerHTML=''},2400)}
-
-// ==================== UTILS ====================
-function esc(str){var d=document.createElement('div');d.textContent=str;return d.innerHTML}
-function escAttr(str){return str.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function spawnHearts(n){var c=document.getElementById('hearts');var e=['💕','💖','💗','💝','✨','🌸','💐','💓','🌟'];var f=document.createDocumentFragment();for(var i=0;i<n;i++){var el=document.createElement('span');el.className='hf';el.textContent=e[Math.floor(Math.random()*e.length)];el.style.left=(10+Math.random()*80)+'%';el.style.top=(50+Math.random()*40)+'%';el.style.animationDuration=(1.2+Math.random()*1.5)+'s';el.style.animationDelay=Math.random()*0.5+'s';el.style.fontSize=(12+Math.random()*18)+'px';f.appendChild(el)}c.appendChild(f);setTimeout(function(){c.innerHTML=''},2400)}
 
 // ==================== EVENTS ====================
-document.getElementById('searchInput').addEventListener('input',function(){var v=this.value.trim();if(!v||v.length<2){document.getElementById('searchResults').classList.remove('show');return}clearTimeout(searchTimeout);searchTimeout=setTimeout(function(){searchPlaces(v,function(r){showSearchResults(r)})},300)});
-document.getElementById('searchInput').addEventListener('keydown',function(e){if(e.key==='Enter')doSearch()});
-document.addEventListener('click',function(e){if(!document.getElementById('searchOverlay').contains(e.target))document.getElementById('searchResults').classList.remove('show')});
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(document.getElementById('lightboxContainer').innerHTML)document.getElementById('lightboxContainer').innerHTML='';else if(selectedId)saveClose(selectedId);addingMode=false;wishMode=false;updateHint()}});
-</script>
-</body>
-</html>
+document.getElementById('si').addEventListener('input',function(){var v=this.value.trim();if(!v||v.length<2){document.getElementById('sr').classList.remove('open');return}clearTimeout(stid);stid=setTimeout(function(){sq(v,function(r){showSR(r)})},300)});
+document.getElementById('si').addEventListener('keydown',function(e){if(e.key==='Enter')doSearch()});
+document.addEventListener('click',function(e){var s=document.querySelector('.search');if(s&&!s.contains(e.target))document.getElementById('sr').classList.remove('open')});
+document.getElementById('pi').addEventListener('change',handlePhoto);
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(document.getElementById('lb').innerHTML)document.getElementById('lb').innerHTML='';else if(selId)saveClose(selId);am=false;wm=false;uh()}});
 
+// ==================== START ====================
+load();
+initMap();
+setDot('y');
+fetchCloud();
+</script>
 </body>
 </html>
