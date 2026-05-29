@@ -379,12 +379,11 @@ body{
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ==================== CONFIGURATION ====================
-// Supabase config - already configured for you
+// Skip SDK - use REST API directly
 const SUPABASE_URL = 'https://wrnjhdgoriflwchrzfem.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndybmpoZGdvcmlmbHdjaHJ6ZmVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTU0NzIsImV4cCI6MjA5NTYzMTQ3Mn0.G542eQ0p_efS49gPc-7ahw5LxaXTXMdqg6h_9DOX8Zk';
-const COUPLE_CODE = 'ourlove2024'; // shared code for both partners
+const COUPLE_CODE = 'ourlove2024';
 
-let isCloud = !!(SUPABASE_URL && SUPABASE_KEY);
 let supabase = null;
 
 // ==================== DATA MODEL ====================
@@ -428,50 +427,46 @@ function saveCloudConfig(){
   }else{toast('请填写 Supabase URL 和 Key')}
 }
 
-// Init cloud if configured
+// Init cloud - uses REST API, no SDK needed
 (function initCloud(){
-  if(isCloud){
-    updateConnStatus('loading');
-    var s=document.createElement('script');s.src='https://unpkg.com/@supabase/supabase-js@2';
-    s.onload=function(){
-      supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-      loadCloudData().then(function(){
-        boot();
-        setInterval(function(){loadCloudData(true)},5000); // poll every 5s for changes
-      });
-    };
-    s.onerror=function(){isCloud=false;updateConnStatus('offline');loadLocalData();boot()};
-    document.head.appendChild(s);
-  }else{updateConnStatus('offline');loadLocalData();boot()}
+  updateConnStatus('loading');
+  // Try cloud first
+  loadCloudData(function(success){
+    if(success){
+      updateConnStatus('online');
+      cloudLoaded=true;
+      boot();
+      setInterval(function(){loadCloudData(function(s){if(s)syncRefs()},true)},5000);
+    }else{
+      updateConnStatus('offline');
+      loadLocalData();
+      boot();
+    }
+  });
 })();
 
 function updateConnStatus(status){
   var dot=document.getElementById('connDot'),label=document.getElementById('connLabel');
   if(status==='online'){dot.className='conn-dot online';label.textContent='云端'}
+  else if(status==='loading'){dot.className='conn-dot online';dot.style.background='#f0ad4e';label.textContent='连接中'}
   else{dot.className='conn-dot offline';label.textContent='本地'}
 }
 
-async function loadCloudData(silent){
-  if(!supabase)return;
-  try{
-    var {data:row,error}=await supabase.from('couple_data').select('data').eq('couple_code',COUPLE_CODE).maybeSingle();
-    if(error){if(!silent)console.log('DB load error:',error);return}
-    if(row&&row.data){
-      var newData=row.data;
-      // Merge: cloud data wins, but preserve local photo base64 that aren't in cloud
-      data=newData;syncRefs();
-      if(!silent){cloudLoaded=true;renderAll();updateConnStatus('online')}
-    }
-  }catch(e){if(!silent)console.log('Load failed:',e)}
+function loadCloudData(cb,silent){
+  fetch(SUPABASE_URL+'/rest/v1/couple_data?couple_code=eq.'+COUPLE_CODE+'&select=data',{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}})
+  .then(function(r){return r.json()}).then(function(rows){
+    if(rows&&rows.length>0&&rows[0].data){
+      data=rows[0].data;syncRefs();
+      if(!silent){renderAll();updateConnStatus('online')}
+      if(cb)cb(true);
+    }else{if(cb)cb(true)}
+  }).catch(function(e){console.log('Cloud load failed:',e);if(cb)cb(false)});
 }
 
-async function saveCloudData(){
-  if(!supabase||!isCloud)return;
-  try{
-    data.locations=locations;data.wishlist=wishlist;data.anniversaries=anniversaries;data.things=things;data.letters=letters;
-    var {error}=await supabase.from('couple_data').upsert({couple_code:COUPLE_CODE,data:data,updated_at:new Date().toISOString()},{onConflict:'couple_code'});
-    if(error)console.log('Save error:',error);
-  }catch(e){console.log('Save failed:',e)}
+function saveCloudData(){
+  data.locations=locations;data.wishlist=wishlist;data.anniversaries=anniversaries;data.things=things;data.letters=letters;
+  fetch(SUPABASE_URL+'/rest/v1/couple_data',{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},body:JSON.stringify({couple_code:COUPLE_CODE,data:data,updated_at:new Date().toISOString()})})
+  .catch(function(e){console.log('Save failed:',e)});
 }
 
 // ==================== LOCAL STORAGE ====================
@@ -483,7 +478,7 @@ function loadLocalData(){
 }
 function resetData(){data={locations:[],wishlist:[],anniversaries:[],things:DEFAULT_THINGS.map(function(t,i){return{id:'t'+i,text:t,done:false}}),letters:[],cdPrimary:null}}
 function syncRefs(){locations=data.locations;wishlist=data.wishlist;anniversaries=data.anniversaries;things=data.things;letters=data.letters}
-function saveData(){data.locations=locations;data.wishlist=wishlist;data.anniversaries=anniversaries;data.things=things;data.letters=letters;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));if(isCloud)saveCloudData()}
+function saveData(){data.locations=locations;data.wishlist=wishlist;data.anniversaries=anniversaries;data.things=things;data.letters=letters;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));if(cloudLoaded)saveCloudData()}
 function uid(){return'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 
 function renderAll(){
