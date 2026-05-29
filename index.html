@@ -427,21 +427,15 @@ function saveCloudConfig(){
   }else{toast('请填写 Supabase URL 和 Key')}
 }
 
-// Init cloud - uses REST API, no SDK needed
+// Init - always boot local first, try cloud in background
 (function initCloud(){
+  loadLocalData();
+  boot();
   updateConnStatus('loading');
-  // Try cloud first
   loadCloudData(function(success){
-    if(success){
-      updateConnStatus('online');
-      cloudLoaded=true;
-      boot();
-      setInterval(function(){loadCloudData(function(s){if(s)syncRefs()},true)},5000);
-    }else{
-      updateConnStatus('offline');
-      loadLocalData();
-      boot();
-    }
+    if(success){updateConnStatus('online');cloudLoaded=true;renderAll()}
+    else{updateConnStatus('offline')}
+    setInterval(function(){if(cloudLoaded){loadCloudData(function(s){if(s)syncRefs()},true)}},8000);
   });
 })();
 
