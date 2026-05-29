@@ -379,10 +379,10 @@ body{
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ==================== CONFIGURATION ====================
-// ⚠️ Set your Supabase URL and anon key here, or leave empty for local-only mode
-const SUPABASE_URL = '';
-const SUPABASE_KEY = '';
-const COUPLE_CODE = ''; // set a shared code like 'mylove2024'
+// Supabase config - already configured for you
+const SUPABASE_URL = 'https://wrnjhdgoriflwchrzfem.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndybmpoZGdvcmlmbHdjaHJ6ZmVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTU0NzIsImV4cCI6MjA5NTYzMTQ3Mn0.G542eQ0p_efS49gPc-7ahw5LxaXTXMdqg6h_9DOX8Zk';
+const COUPLE_CODE = 'ourlove2024'; // shared code for both partners
 
 let isCloud = !!(SUPABASE_URL && SUPABASE_KEY);
 let supabase = null;
@@ -430,25 +430,19 @@ function saveCloudConfig(){
 
 // Init cloud if configured
 (function initCloud(){
-  var url=SUPABASE_URL||localStorage.getItem('couple_supabase_url')||'';
-  var key=SUPABASE_KEY||localStorage.getItem('couple_supabase_key')||'';
-  var code=COUPLE_CODE||localStorage.getItem('couple_code')||'mylove2024';
-  if(url&&key){
-    isCloud=true;
-    // Load Supabase SDK dynamically
+  if(isCloud){
+    updateConnStatus('loading');
     var s=document.createElement('script');s.src='https://unpkg.com/@supabase/supabase-js@2';
     s.onload=function(){
-      supabase=window.supabase.createClient(url,key);
-      updateConnStatus('online');
-      loadCloudData();
+      supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+      loadCloudData().then(function(){
+        boot();
+        setInterval(function(){loadCloudData(true)},5000); // poll every 5s for changes
+      });
     };
-    s.onerror=function(){isCloud=false;updateConnStatus('offline');loadLocalData();renderAll()};
+    s.onerror=function(){isCloud=false;updateConnStatus('offline');loadLocalData();boot()};
     document.head.appendChild(s);
-  }else{
-    updateConnStatus('offline');
-    loadLocalData();
-    renderAll();
-  }
+  }else{updateConnStatus('offline');loadLocalData();boot()}
 })();
 
 function updateConnStatus(status){
@@ -457,25 +451,27 @@ function updateConnStatus(status){
   else{dot.className='conn-dot offline';label.textContent='本地'}
 }
 
-async function loadCloudData(){
+async function loadCloudData(silent){
+  if(!supabase)return;
   try{
-    var code=COUPLE_CODE||localStorage.getItem('couple_code')||'mylove2024';
-    var {data:row,error}=await supabase.from('couple_data').select('data').eq('couple_code',code).maybeSingle();
-    if(row&&row.data){data=row.data;cloudLoaded=true}
-    syncRefs();renderAll();
-    // Subscribe to real-time changes
-    supabase.channel('data_changes').on('postgres_changes',{event:'*',schema:'public',table:'couple_data',filter:'couple_code=eq.'+code},function(){loadCloudData()}).subscribe();
-  }catch(e){console.log('Cloud load failed:',e);loadLocalData();renderAll()}
+    var {data:row,error}=await supabase.from('couple_data').select('data').eq('couple_code',COUPLE_CODE).maybeSingle();
+    if(error){if(!silent)console.log('DB load error:',error);return}
+    if(row&&row.data){
+      var newData=row.data;
+      // Merge: cloud data wins, but preserve local photo base64 that aren't in cloud
+      data=newData;syncRefs();
+      if(!silent){cloudLoaded=true;renderAll();updateConnStatus('online')}
+    }
+  }catch(e){if(!silent)console.log('Load failed:',e)}
 }
 
 async function saveCloudData(){
   if(!supabase||!isCloud)return;
   try{
-    var code=COUPLE_CODE||localStorage.getItem('couple_code')||'mylove2024';
     data.locations=locations;data.wishlist=wishlist;data.anniversaries=anniversaries;data.things=things;data.letters=letters;
-    var {error}=await supabase.from('couple_data').upsert({couple_code:code,data:data,updated_at:new Date().toISOString()},{onConflict:'couple_code'});
+    var {error}=await supabase.from('couple_data').upsert({couple_code:COUPLE_CODE,data:data,updated_at:new Date().toISOString()},{onConflict:'couple_code'});
     if(error)console.log('Save error:',error);
-  }catch(e){console.log('Cloud save failed:',e)}
+  }catch(e){console.log('Save failed:',e)}
 }
 
 // ==================== LOCAL STORAGE ====================
@@ -597,11 +593,8 @@ function boot(){
   initMap();
   renderMapSidebar();
   updateNavCd();
+  renderAnni();renderStats();renderLetters();renderThings();renderTimeline();
 }
-// If cloud loaded, boot after; otherwise boot immediately
-if(!isCloud) boot();
-// boot() will also be called after loadCloudData completes if cloud mode
-setTimeout(function(){if(!cloudLoaded&&isCloud){boot()}else if(!isCloud){renderAnni();renderStats();renderLetters();renderThings();renderTimeline()}},1500);
 </script>
 </body>
 </html>
