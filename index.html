@@ -384,8 +384,6 @@ const SUPABASE_URL = 'https://wrnjhdgoriflwchrzfem.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndybmpoZGdvcmlmbHdjaHJ6ZmVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTU0NzIsImV4cCI6MjA5NTYzMTQ3Mn0.G542eQ0p_efS49gPc-7ahw5LxaXTXMdqg6h_9DOX8Zk';
 const COUPLE_CODE = 'ourlove2024';
 
-let supabase = null;
-
 // ==================== DATA MODEL ====================
 const STORAGE_KEY = 'couple_hub_v2';
 const DEFAULT_THINGS = ['👫 一起看一次日出','🌅 一起看一次日落','🌟 一起看星星','🏕️ 一起去露营','🏖️ 一起去海边','⛰️ 一起爬山','🎢 一起去游乐园','🎬 一起看电影','🍳 一起做一顿饭','🎂 一起做蛋糕','📸 拍一组情侣照','💌 给对方写一封情书','🎁 给对方准备惊喜礼物','🌸 一起看花海','🍂 一起踩落叶','❄️ 一起看雪','🎆 一起看烟花','🎵 一起去音乐会','🏛️ 一起去博物馆','📚 一起去图书馆','🚲 一起骑车','🛶 一起划船','🐱 一起撸猫','🐶 一起遛狗','🎨 一起画画','🧩 一起拼拼图','🎮 一起打游戏','🏀 一起运动','☕ 一起去咖啡馆','🍣 一起吃日料','🍲 一起吃火锅','🍦 一起吃冰淇淋','🍓 一起去摘草莓','🛒 一起逛超市','👗 一起逛街','💐 送对方一束花','💇 帮对方吹头发','🤗 拥抱超过一分钟','😴 一起睡到自然醒','🍳 为对方做早餐','📝 一起写情侣清单','🗺️ 一起去陌生的城市','🚗 一起自驾游','🏊 一起游泳','🎿 一起去滑雪','🐬 一起看海豚','🦒 一起去动物园','🌌 一起看极光','🏯 一起去古镇','🌉 一起在桥上散步','🎡 一起坐摩天轮','🗼 一起去看铁塔','🏰 一起去城堡','🌋 一起去看火山','🏜️ 一起去沙漠','🏝️ 一起去无人岛','🛳一起坐邮轮','🎈 一起坐热气球','✈️ 一起出国旅行','🏠 一起装饰房间','🌱 一起养一盆植物','📖 给对方读一本书','🎤 一起去KTV唱歌','👻 一起去鬼屋','🎃 一起过万圣节','🎄 一起装饰圣诞树','🧧 一起包饺子','🎂 一起庆祝生日','💍 一起去挑戒指','📅 一起规划未来','👶 一起想宝宝的名字','🏡 一起看房子','💒 一起去参加婚礼','🫂 在对方难过时陪伴','🤝 牵手走过一条街','👀 对视三分钟','🗣️ 说"我爱你"','💤 一起进入梦乡'];
@@ -427,17 +425,40 @@ function saveCloudConfig(){
   }else{toast('请填写 Supabase URL 和 Key')}
 }
 
-// Init - always boot local first, try cloud in background
-(function initCloud(){
-  loadLocalData();
-  boot();
-  updateConnStatus('loading');
-  loadCloudData(function(success){
-    if(success){updateConnStatus('online');cloudLoaded=true;renderAll()}
+// ==================== BOOT (minimal, bulletproof) ====================
+function boot(){
+  try{initMap()}catch(e){console.error('Map init failed:',e)}
+  try{renderMapSidebar()}catch(e){}
+  try{updateNavCd()}catch(e){}
+}
+// Start: load local data, boot map immediately, cloud sync in background
+try{loadLocalData()}catch(e){}
+try{boot()}catch(e){console.error('Boot failed:',e)}
+// Lazy-render other tabs when first visited
+window._rendered={};
+function lazyRender(page,fn){
+  if(!window._rendered[page]){try{fn()}catch(e){console.error(page+' render failed:',e)};window._rendered[page]=1}
+}
+// Background cloud sync
+updateConnStatus('loading');
+try{
+  fetch(SUPABASE_URL+'/rest/v1/couple_data?couple_code=eq.'+COUPLE_CODE+'&select=data',{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}})
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})
+  .then(function(rows){
+    if(rows&&rows.length>0&&rows[0].data){data=rows[0].data;syncRefs();cloudLoaded=true;updateConnStatus('online')}
     else{updateConnStatus('offline')}
-    setInterval(function(){if(cloudLoaded){loadCloudData(function(s){if(s)syncRefs()},true)}},8000);
-  });
-})();
+  }).catch(function(e){console.log('Cloud:',e.message);updateConnStatus('offline')});
+}catch(e){updateConnStatus('offline')}
+// Poll for cloud changes every 8s
+setInterval(function(){
+  if(!cloudLoaded)return;
+  try{
+    fetch(SUPABASE_URL+'/rest/v1/couple_data?couple_code=eq.'+COUPLE_CODE+'&select=data',{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}})
+    .then(function(r){return r.json()}).then(function(rows){
+      if(rows&&rows.length>0&&rows[0].data){data=rows[0].data;syncRefs()}
+    }).catch(function(){});
+  }catch(e){}
+},8000);
 
 function updateConnStatus(status){
   var dot=document.getElementById('connDot'),label=document.getElementById('connLabel');
@@ -451,7 +472,7 @@ function loadCloudData(cb,silent){
   .then(function(r){return r.json()}).then(function(rows){
     if(rows&&rows.length>0&&rows[0].data){
       data=rows[0].data;syncRefs();
-      if(!silent){renderAll();updateConnStatus('online')}
+      if(!silent){updateConnStatus('online')}
       if(cb)cb(true);
     }else{if(cb)cb(true)}
   }).catch(function(e){console.log('Cloud load failed:',e);if(cb)cb(false)});
@@ -475,18 +496,14 @@ function syncRefs(){locations=data.locations;wishlist=data.wishlist;anniversarie
 function saveData(){data.locations=locations;data.wishlist=wishlist;data.anniversaries=anniversaries;data.things=things;data.letters=letters;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));if(cloudLoaded)saveCloudData()}
 function uid(){return'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 
-function renderAll(){
-  renderMapSidebar();updateNavCd();renderTimeline();renderThings();renderAnni();renderStats();renderLetters();
-}
-
 // ==================== TOAST ====================
 function toast(msg){var el=document.createElement('div');el.className='toast';el.innerHTML=msg;document.body.appendChild(el);setTimeout(function(){el.remove()},1800)}
 
 // ==================== NAVIGATION ====================
-function switchPage(page){currentPage=page;document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});document.getElementById('page_'+page).classList.add('active');var pages=['map','timeline','things','anni','stats','letters'];document.querySelectorAll('.nav-tab')[pages.indexOf(page)].classList.add('active');if(page==='map'){setTimeout(function(){map&&map.invalidateSize()},100)}if(page==='timeline')renderTimeline();if(page==='things')renderThings();if(page==='anni')renderAnni();if(page==='stats')renderStats();if(page==='letters')renderLetters()}
+function switchPage(page){currentPage=page;document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});document.getElementById('page_'+page).classList.add('active');var pages=['map','timeline','things','anni','stats','letters'];document.querySelectorAll('.nav-tab')[pages.indexOf(page)].classList.add('active');if(page==='map'){setTimeout(function(){map&&map.invalidateSize()},200)}if(page==='timeline')lazyRender('timeline',renderTimeline);if(page==='things')lazyRender('things',renderThings);if(page==='anni')lazyRender('anni',renderAnni);if(page==='stats')lazyRender('stats',renderStats);if(page==='letters')lazyRender('letters',renderLetters)}
 
 // ==================== MAP ====================
-function initMap(){map=L.map('map',{center:[34.5,108.5],zoom:5,zoomControl:false,attributionControl:false});L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',{maxZoom:18,subdomains:['1','2','3','4']}).addTo(map);markersLayer=L.layerGroup().addTo(map);wishMarkersLayer=L.layerGroup().addTo(map);map.on('click',function(e){if(addingMode){reverseGeocode(e.latlng.lat,e.latlng.lng,function(addr){showPinPreview(e.latlng.lat,e.latlng.lng,addr);addingMode=false;updateHint()})}else if(wishMode){reverseGeocode(e.latlng.lat,e.latlng.lng,function(addr){showPinPreview(e.latlng.lat,e.latlng.lng,addr);wishMode=false;updateHint()})}});map.on('movestart',function(){document.getElementById('pinPreview').style.display='none';document.getElementById('foundLabel').style.display='none'});setTimeout(function(){map.invalidateSize()},100);renderMapMarkers();updateRoute();renderMapSidebar()}
+function initMap(){try{map=L.map('map',{center:[34.5,108.5],zoom:5,zoomControl:false,attributionControl:false});var tile=L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',{maxZoom:18,subdomains:['1','2','3','4']}).addTo(map);tile.on('tileerror',function(){tile.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');tile.options.subdomains='abc'});markersLayer=L.layerGroup().addTo(map);wishMarkersLayer=L.layerGroup().addTo(map);map.on('click',function(e){if(addingMode){reverseGeocode(e.latlng.lat,e.latlng.lng,function(addr){showPinPreview(e.latlng.lat,e.latlng.lng,addr);addingMode=false;updateHint()})}else if(wishMode){reverseGeocode(e.latlng.lat,e.latlng.lng,function(addr){showPinPreview(e.latlng.lat,e.latlng.lng,addr);wishMode=false;updateHint()})}});map.on('movestart',function(){document.getElementById('pinPreview').style.display='none';document.getElementById('foundLabel').style.display='none'});setTimeout(function(){map&&map.invalidateSize()},300);renderMapMarkers();updateRoute();renderMapSidebar()}catch(e){console.error('initMap failed:',e)}}
 
 function renderMapMarkers(){markersLayer.clearLayers();wishMarkersLayer.clearLayers();locations.forEach(function(loc){var icon=L.divIcon({className:'custom-marker',html:'<div class="marker-dot">'+(loc.emoji||'📍')+'</div>',iconSize:[38,38],iconAnchor:[19,19]});var m=L.marker([loc.lat,loc.lng],{icon:icon}).addTo(markersLayer);m.on('click',function(ev){L.DomEvent.stopPropagation(ev);openDetail(loc.id)})});wishlist.forEach(function(w){var icon=L.divIcon({className:'custom-marker',html:'<div class="marker-dot marker-wish">💭</div>',iconSize:[38,38],iconAnchor:[19,19]});var m=L.marker([w.lat,w.lng],{icon:icon,opacity:0.6}).addTo(wishMarkersLayer);m.on('click',function(ev){L.DomEvent.stopPropagation(ev);promoteWish(w.id)})})}
 function updateRoute(){if(routeLine){map.removeLayer(routeLine);routeLine=null}if(!showRoute||locations.length<2)return;var sorted=locations.slice().sort(function(a,b){return a.createdAt-b.createdAt});routeLine=L.polyline(sorted.map(function(l){return[l.lat,l.lng]}),{color:'#F4ACB7',weight:2.5,opacity:0.5,dashArray:'8 5',lineCap:'round'}).addTo(map)}
@@ -576,14 +593,9 @@ document.getElementById('searchInput').addEventListener('input',function(){var v
 document.getElementById('searchInput').addEventListener('keydown',function(e){if(e.key==='Enter')doSearch()});
 document.addEventListener('click',function(e){if(!document.getElementById('searchOverlay').contains(e.target))document.getElementById('searchResults').classList.remove('show')});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(document.getElementById('lightboxContainer').innerHTML)document.getElementById('lightboxContainer').innerHTML='';else if(selectedId)saveClose(selectedId);addingMode=false;wishMode=false;updateHint()}});
-
-// ==================== BOOT ====================
-function boot(){
-  initMap();
-  renderMapSidebar();
-  updateNavCd();
-  renderAnni();renderStats();renderLetters();renderThings();renderTimeline();
-}
 </script>
+</body>
+</html>
+
 </body>
 </html>
