@@ -268,7 +268,7 @@ function refreshAll(){renderMapMarkers();renderSList();renderTL();renderThings()
 function initMap(){
   map=L.map('map',{center:[34.5,108.5],zoom:5,zoomControl:false,attributionControl:false});
   // Use Gaode tiles as primary (works in China), OSM as fallback
-  var layer=L.tileLayer('https://{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',{maxZoom:18,subdomains:['1','2','3','4']}).addTo(map);
+  var layer=L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',{maxZoom:18,subdomains:['1','2','3','4']}).addTo(map);
   layer.on('tileerror',function(){layer.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');layer.options.subdomains='abc'});
   ml=L.layerGroup().addTo(map);wml=L.layerGroup().addTo(map);
   map.on('click',function(e){if(am){am=false;uh();showAddModal(e.latlng.lat,e.latlng.lng,'','');rg(e.latlng.lat,e.latlng.lng,function(a){if(a){var n=a.split(',')[0];var inp=document.getElementById('amodName');if(inp)inp.value=n;var ad=document.querySelector('.addbox .addr');if(ad)ad.innerHTML='📍 '+esc(a);window._addAddr=a}else{var ad2=document.querySelector('.addbox .addr');if(ad2)ad2.innerHTML='📍 手动输入地址'}})}else if(wm){wm=false;uh();showAddModal(e.latlng.lat,e.latlng.lng,'','');rg(e.latlng.lat,e.latlng.lng,function(a){if(a){var n=a.split(',')[0];var inp=document.getElementById('amodName');if(inp)inp.value=n;var ad=document.querySelector('.addbox .addr');if(ad)ad.innerHTML='📍 '+esc(a);window._addAddr=a}else{var ad2=document.querySelector('.addbox .addr');if(ad2)ad2.innerHTML='💭 手动输入想去的地方'}})}});
