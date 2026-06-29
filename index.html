@@ -282,7 +282,7 @@ function initMap(){
   var layer=L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',{maxZoom:18,subdomains:['1','2','3','4']}).addTo(map);
   layer.on('tileerror',function(){layer.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');layer.options.subdomains='abc'});
   ml=L.layerGroup().addTo(map);wml=L.layerGroup().addTo(map);
-  map.on('click',function(e){if(am){am=false;uh();showAddModal(e.latlng.lat,e.latlng.lng,'','');rg(e.latlng.lat,e.latlng.lng,function(a){if(a){var n=a.split(',')[0];var inp=document.getElementById('amodName');if(inp)inp.value=n;var ad=document.querySelector('.addbox .addr');if(ad)ad.innerHTML='📍 '+esc(a);window._addAddr=a}else{var ad2=document.querySelector('.addbox .addr');if(ad2)ad2.innerHTML='📍 手动输入地址'}})}else if(wm){wm=false;uh();showAddModal(e.latlng.lat,e.latlng.lng,'','');rg(e.latlng.lat,e.latlng.lng,function(a){if(a){var n=a.split(',')[0];var inp=document.getElementById('amodName');if(inp)inp.value=n;var ad=document.querySelector('.addbox .addr');if(ad)ad.innerHTML='📍 '+esc(a);window._addAddr=a}else{var ad2=document.querySelector('.addbox .addr');if(ad2)ad2.innerHTML='💭 手动输入想去的地方'}})}});
+  map.on('click',function(e){if(am){am=false;uh();showAddAt(e.latlng.lat,e.latlng.lng,false)}else if(wm){wm=false;uh();showAddAt(e.latlng.lat,e.latlng.lng,true)}});
   map.on('movestart',function(){document.getElementById('pin').style.display='none';document.getElementById('plb').style.display='none'});
   setTimeout(function(){map.invalidateSize()},300);
   renderMapMarkers();renderSList();
@@ -298,79 +298,31 @@ function rg(lat,lng,cb){var x=new XMLHttpRequest();x.timeout=8000;x.open('GET','
 // ==================== SEARCH ====================
 function doSearch(){var q=document.getElementById('si').value.trim();if(!q)return;sq(q,function(r){showSR(r)})}
 function showSR(r){var c=document.getElementById('sr');if(!r.length){c.innerHTML='<div style="padding:14px;text-align:center;color:#ccc;font-size:11px">没有找到</div>';c.classList.add('open');return}c.innerHTML=r.map(function(r,i){return'<div class="r" style="display:flex;align-items:center;gap:8px"><div style="flex:1;cursor:pointer" onclick="selSR('+i+')"><div style="font-weight:600;font-size:12px">'+esc(r.display_name.split(',')[0])+'</div><div style="font-size:10px;color:#bbb">'+esc(r.display_name)+'</div></div><button class="sr-add" onclick="event.stopPropagation();quickAdd('+i+')" title="直接添加">✓</button></div>'}).join('');c.classList.add('open');c._r=r}
-function quickAdd(i){var c=document.getElementById('sr'),r=c._r[i];if(!r)return;c.classList.remove('open');var lat=parseFloat(r.lat),lng=parseFloat(r.lon);var name=r.display_name.split(',')[0];if(sm)map.removeLayer(sm);var icon=L.divIcon({className:'cm',html:'<div class="mdot">📍</div>',iconSize:[38,38],iconAnchor:[19,19]});sm=L.marker([lat,lng],{icon:icon}).addTo(map);map.flyTo([lat,lng],13,{duration:0.7});showAddModal(lat,lng,r.display_name,name)}
-function selSR(i){var c=document.getElementById('sr'),r=c._r[i];if(!r)return;c.classList.remove('open');document.getElementById('si').value=r.display_name.split(',')[0];var lat=parseFloat(r.lat),lng=parseFloat(r.lon);if(sm)map.removeLayer(sm);var icon=L.divIcon({className:'cm',html:'<div class="mdot">📍</div>',iconSize:[38,38],iconAnchor:[19,19]});sm=L.marker([lat,lng],{icon:icon}).addTo(map);map.flyTo([lat,lng],13,{duration:0.7});showPin(lat,lng,r.display_name)}
+function quickAdd(i){var c=document.getElementById('sr'),r=c._r[i];if(!r)return;c.classList.remove('open');var lat=parseFloat(r.lat),lng=parseFloat(r.lon);map.flyTo([lat,lng],13,{duration:0.7});showAddAt(lat,lng,false)}
+function selSR(i){var c=document.getElementById('sr'),r=c._r[i];if(!r)return;c.classList.remove('open');document.getElementById('si').value=r.display_name.split(',')[0];var lat=parseFloat(r.lat),lng=parseFloat(r.lon);map.flyTo([lat,lng],13,{duration:0.7});showAddAt(lat,lng,false)}
 
 // ==================== PIN ====================
-function showPin(lat,lng,addr){var n=addr?addr.split(',')[0]:'这个位置';document.getElementById('pn').textContent=n;document.getElementById('pa').textContent=addr||'';var pin=document.getElementById('pin'),plb=document.getElementById('plb');var pt=map.latLngToContainerPoint([lat,lng]);pin.style.left=pt.x+'px';pin.style.top=pt.y+'px';pin.style.display='block';plb.style.left=pt.x+'px';plb.style.top=pt.y+'px';plb.style.display='block';if(sm)map.removeLayer(sm);var icon=L.divIcon({className:'cm',html:'<div class="mdot">📍</div>',iconSize:[38,38],iconAnchor:[19,19]});sm=L.marker([lat,lng],{icon:icon}).addTo(map);setTimeout(function(){var def=addr?addr.split(',')[0].trim():'';showAddModal(lat,lng,addr,def)},300)}
-function showAddModal(lat,lng,addr,name){
-  var m=document.getElementById('modal');
-  // Build with createElement for reliability
-  m.innerHTML='';
-  var overlay=document.createElement('div');
-  overlay.className='addmod';
-  overlay.onclick=function(e){if(e.target===overlay)closeAddMod()};
-  var box=document.createElement('div');
-  box.className='addbox';
-  box.onclick=function(e){e.stopPropagation()};
-  var h3=document.createElement('h3');
-  h3.textContent='✨ 标记这个地点';
-  box.appendChild(h3);
-  var adiv=document.createElement('div');
-  adiv.className='addr';
-  adiv.textContent=addr?'📍 '+addr:'📍 正在获取地址...';
-  box.appendChild(adiv);
-  var inp=document.createElement('input');
-  inp.type='text';inp.id='amodName';inp.value=name||'';
-  inp.placeholder='给这个地方起个名字～';
-  box.appendChild(inp);
-  var drow=document.createElement('div');drow.className='arow';
-  drow.innerHTML='📅 ';
-  var dinp=document.createElement('input');
-  dinp.type='date';dinp.id='amodDate';
-  dinp.value=new Date().toISOString().slice(0,10);
-  drow.appendChild(dinp);
-  box.appendChild(drow);
-  var erow=document.createElement('div');erow.className='emos2';erow.id='amodEmos';
-  var emos=['📍','🏖️','🏔️','🏯','🌃','🏝️','🎡','🗼','🏛️','🎢','🌅','🏕️','🛳️','✈️','💒','🌸','🌊','⛰️','🏰','🌋','🏜️','🗽','🕌','❄️','🍜','🏘️'];
-  var selEmo=pickEmoji(name||'');
-  emos.forEach(function(e){
-    var b=document.createElement('button');b.textContent=e;
-    if(e===selEmo)b.className='on';
-    b.onclick=function(){var bb=erow.querySelectorAll('button');bb.forEach(function(x){x.className=''});b.className='on';selEmo=e};
-    erow.appendChild(b);
-  });
-  box.appendChild(erow);
-  var btns=document.createElement('div');btns.className='btns';
-  var cancelBtn=document.createElement('button');
-  cancelBtn.className='cancel';cancelBtn.textContent='取消';
-  cancelBtn.onclick=closeAddMod;
-  var saveBtn=document.createElement('button');
-  saveBtn.className='ok';saveBtn.textContent='💾 保存';
-  saveBtn.onclick=doAddMod;
-  btns.appendChild(cancelBtn);btns.appendChild(saveBtn);
-  box.appendChild(btns);
-  overlay.appendChild(box);
-  m.appendChild(overlay);
-  window._addLat=lat;window._addLng=lng;window._addAddr=addr;window._addEmo=selEmo;
-}
-function closeAddMod(){document.getElementById('modal').innerHTML='';document.getElementById('pin').style.display='none';document.getElementById('plb').style.display='none';if(sm){map.removeLayer(sm);sm=null}}
-function doAddMod(){var name=document.getElementById('amodName').value.trim();if(!name){toast('⚠️ 请给地点起个名字');return}if(window._addLat===undefined||window._addLng===undefined||isNaN(window._addLat)){toast('⚠️ 位置信息丢失，请重新选择');closeAddMod();return}var date=document.getElementById('amodDate').value;var addr=window._addAddr||'';var lat=window._addLat,lng=window._addLng;var emo=window._addEmo||'📍';closeAddMod();if(wm)createWish(lat,lng,name,addr);else createLocFull(lat,lng,name,addr,date,emo)}
 function createLocFull(lat,lng,name,addr,date,emo){var loc={id:uid(),name:name,address:addr||'',lat:lat,lng:lng,date:date||new Date().toISOString().slice(0,10),emoji:emo||pickEmoji(name),photos:[],notes:'',memories:[],events:[],createdAt:Date.now()};locs.push(loc);save();renderMapMarkers();updateRoute();renderSList();spawnHearts(12);openDetail(loc.id);toast('✨ '+name+' 已点亮！')}
 
 // ==================== ADD ====================
 function enterAdd(){am=true;wm=false;uh();toast('📍 在地图上点击你要标记的位置！');document.getElementById('hint').textContent='📍 现在在地图上点击你要标记的位置！';document.body.style.cursor='crosshair'}
-function doSaveCenter(){
-  var n=document.getElementById('amodName3').value.trim();
+function doSaveAdd(){
+  var n=document.getElementById('amodNameX').value.trim();
   if(!n){toast('⚠️ 请输入名字');return}
-  var d=document.getElementById('amodDate3').value;
-  var loc={id:uid(),name:n,address:'',lat:window._addLat,lng:window._addLng,date:d,emoji:window._addEmo||'📍',photos:[],notes:'',memories:[],events:[],createdAt:Date.now()};
-  locs.push(loc);save();renderMapMarkers();updateRoute();renderSList();
+  var d=document.getElementById('amodDateX').value;
+  var isWish=window._addIsWish;
   document.getElementById('modal').innerHTML='';
-  spawnHearts(12);openDetail(loc.id);toast('✨ '+n+' 已点亮！')
+  if(isWish){
+    wish.push({id:uid(),name:n,address:'',lat:window._addLat,lng:window._addLng,createdAt:Date.now()});
+    save();renderMapMarkers();renderSList();toast('💭 '+n+' 加入愿望清单！')
+  }else{
+    var loc={id:uid(),name:n,address:'',lat:window._addLat,lng:window._addLng,date:d,emoji:window._addEmo||'📍',photos:[],notes:'',memories:[],events:[],createdAt:Date.now()};
+    locs.push(loc);save();renderMapMarkers();updateRoute();renderSList();
+    spawnHearts(12);openDetail(loc.id);toast('✨ '+n+' 已点亮！')
+  }
 }
-function addAtCenter(){
-  var c=map.getCenter();window._addLat=c.lat;window._addLng=c.lng;window._addEmo='📍';
+function showAddAt(lat,lng,isWish){
+  window._addLat=lat;window._addLng=lng;window._addEmo='📍';window._addIsWish=isWish;
   var m=document.getElementById('modal');m.innerHTML='';
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.35);z-index:99999;display:flex;align-items:center;justify-content:center';
@@ -378,11 +330,14 @@ function addAtCenter(){
   var bx=document.createElement('div');
   bx.style.cssText='background:#fff;border-radius:18px;padding:28px 24px;width:360px;max-width:92vw;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.15)';
   bx.onclick=function(e){e.stopPropagation()};
-  var h3=document.createElement('h3');h3.textContent='✨ 标记这个地点';h3.style.cssText='font-size:18px;margin-bottom:4px';
-  var addr=document.createElement('p');addr.textContent='📍 当前地图中心';addr.style.cssText='font-size:11px;color:#bbb;margin-bottom:12px';
-  var inp=document.createElement('input');inp.id='amodName3';inp.placeholder='给这个地方起个名字～';inp.style.cssText='width:100%;padding:10px 14px;border:2px solid #eee;border-radius:12px;font-size:14px;font-family:inherit;outline:none;text-align:center;margin-bottom:8px;color:#4A3040';
-  inp.onkeydown=function(e){if(e.key==='Enter')doSaveCenter()};
-  var dt=document.createElement('input');dt.type='date';dt.id='amodDate3';dt.value=new Date().toISOString().slice(0,10);dt.style.cssText='width:100%;padding:10px 14px;border:2px solid #eee;border-radius:12px;font-size:14px;font-family:inherit;outline:none;text-align:center;margin-bottom:16px;color:#4A3040';
+  var h3=document.createElement('h3');h3.textContent=isWish?'💭 想去的地方':'✨ 标记这个地点';h3.style.cssText='font-size:18px;margin-bottom:4px';
+  var addr=document.createElement('p');addr.textContent='📍 坐标: '+lat.toFixed(4)+', '+lng.toFixed(4);addr.style.cssText='font-size:11px;color:#bbb;margin-bottom:12px';
+  var inp=document.createElement('input');inp.id='amodNameX';inp.placeholder='给这个地方起个名字～';inp.style.cssText='width:100%;padding:10px 14px;border:2px solid #eee;border-radius:12px;font-size:14px;font-family:inherit;outline:none;text-align:center;margin-bottom:8px;color:#4A3040';
+  inp.onkeydown=function(e){if(e.key==='Enter')doSaveAdd()};
+  var dt=document.createElement('div');dt.style.cssText='display:'+(isWish?'none':'block');
+  var dtlbl=document.createElement('span');dtlbl.textContent='📅 ';dtlbl.style.cssText='font-size:11px;color:#bbb';
+  var dtinp=document.createElement('input');dtinp.type='date';dtinp.id='amodDateX';dtinp.value=new Date().toISOString().slice(0,10);dtinp.style.cssText='padding:8px 12px;border:2px solid #eee;border-radius:12px;font-size:12px;font-family:inherit;outline:none;color:#4A3040;margin-bottom:12px';
+  dt.appendChild(dtlbl);dt.appendChild(dtinp);
   var emos=['📍','🏖️','🏔️','🏯','🌃','🏝️','🎡','🗼','🏛️','🎢','🌅','🏕️','🛳️','✈️','💒','🌸','🌊','⛰️','🏰'];
   var er=document.createElement('div');er.style.cssText='display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-bottom:16px';
   emos.forEach(function(e){
@@ -393,11 +348,12 @@ function addAtCenter(){
   });
   var bt=document.createElement('div');bt.style.cssText='display:flex;gap:8px';
   var cb=document.createElement('button');cb.textContent='取消';cb.style.cssText='flex:1;padding:11px;border:none;border-radius:20px;font-size:13px;font-family:inherit;background:#f5f5f5;color:#999;cursor:pointer';cb.onclick=function(){m.innerHTML=''};
-  var sb=document.createElement('button');sb.textContent='💾 保存';sb.style.cssText='flex:1;padding:11px;border:none;border-radius:20px;font-size:13px;font-family:inherit;font-weight:600;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:#fff;cursor:pointer';sb.onclick=doSaveCenter;
+  var sb=document.createElement('button');sb.textContent='💾 保存';sb.style.cssText='flex:1;padding:11px;border:none;border-radius:20px;font-size:13px;font-family:inherit;font-weight:600;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:#fff;cursor:pointer';sb.onclick=doSaveAdd;
   bt.appendChild(cb);bt.appendChild(sb);
   bx.appendChild(h3);bx.appendChild(addr);bx.appendChild(inp);bx.appendChild(dt);bx.appendChild(er);bx.appendChild(bt);
   ov.appendChild(bx);m.appendChild(ov);
 }
+function addAtCenter(){var c=map.getCenter();showAddAt(c.lat,c.lng,false)}
 function testAdd(){var m=document.getElementById('modal');m.innerHTML='<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center"><div style="background:white;padding:30px;border-radius:16px;text-align:center"><h2>✅ 弹窗测试成功!</h2><p>说明基础弹窗功能正常</p><button onclick="this.parentElement.parentElement.remove()" style="margin-top:12px;padding:10px 30px;background:#E8879B;color:white;border:none;border-radius:20px;font-size:16px;cursor:pointer">关闭</button></div></div>';}
 function enterWish(){wm=true;am=false;uh();toast('💭 在地图上点击你想去的地方')}
 function createLoc(lat,lng,name,addr){var loc={id:uid(),name:name,address:addr||'',lat:lat,lng:lng,date:new Date().toISOString().slice(0,10),emoji:pickEmoji(name),photos:[],notes:'',memories:[],events:[],createdAt:Date.now()};locs.push(loc);save();renderMapMarkers();updateRoute();renderSList();spawnHearts(12);openDetail(loc.id);toast('✨ '+name+' 已点亮！')}
