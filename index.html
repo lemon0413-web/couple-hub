@@ -306,7 +306,7 @@ body{font-size:14px}
 var SUPABASE_URL='https://wrnjhdgoriflwchrzfem.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndybmpoZGdvcmlmbHdjaHJ6ZmVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTU0NzIsImV4cCI6MjA5NTYzMTQ3Mn0.G542eQ0p_efS49gPc-7ahw5LxaXTXMdqg6h_9DOX8Zk';
 var CODE='ourlove2024';
-var SK='couple_hub_v3';
+var SK='couple_hub_v3';var GH_TOKEN=localStorage.getItem('gh_token')||'';var SYNC_INTERVAL=15000;var _syncing=false;
 
 // ==================== DATA ====================
 var things0='👫一起看日出|🌅一起看日落|🌟一起看星星|🏕️一起去露营|🏖️一起去海边|⛰️一起爬山|🎢一起去游乐园|🎬一起去看电影|🍳一起做一顿饭|🎂一起做蛋糕|📸拍一组情侣照|💌给对方写一封情书|🎁准备惊喜礼物|🌸一起看花海|🍂一起踩落叶|❄️一起看雪|🎆一起看烟花|🎵去音乐会|🏛️去博物馆|📚去图书馆|🚲一起骑车|🛶一起划船|🐱一起撸猫|🐶一起遛狗|🎨一起画画|🧩一起拼拼图|🎮一起打游戏|🏀一起运动|☕去咖啡馆|🍣吃日料|🍲吃火锅|🍦吃冰淇淋|🍓去摘草莓|🛒逛超市|👗一起逛街|💐送花|💇帮对方吹头发|🤗拥抱一分钟|😴睡到自然醒|🍳为对方做早餐|🗺️去陌生城市|🚗自驾游|🏊游泳|🎿滑雪|🐬看海豚|🦒去动物园|🌌一起看极光|🏯去古镇|🌉在桥上散步|🎡坐摩天轮|🗼去看铁塔|🏰去城堡|🌋看火山|🏜️去沙漠|🛳坐邮轮|🎈坐热气球|✈️出国旅行|🏠装饰房间|🌱养植物|📖给对方读书|🎤去KTV|👻去鬼屋|🎃过万圣节|🎄装饰圣诞树|🧧包饺子|🎂庆祝生日|💍挑戒指|📅规划未来|👶想宝宝名字|🏡看房子|💒参加婚礼|🫂陪伴难过的时刻|🤝牵手走过一条街|👀对视三分钟|🗣️说我爱你|💤一起进入梦乡'.split('|');
@@ -325,9 +325,60 @@ function esc(s){var d=document.createElement('div');d.textContent=s;return d.inn
 function esa(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
 // ==================== CLOUD (Supabase - may be blocked in China) ====================
-function saveCloud(d){fetch(SUPABASE_URL+'/rest/v1/couple_data',{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},body:JSON.stringify({couple_code:CODE,data:d,updated_at:new Date().toISOString()})}).catch(function(){})}
-function fetchCloud(){fetch(SUPABASE_URL+'/rest/v1/couple_data?couple_code=eq.'+CODE+'&select=data',{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}}).then(function(r){return r.json()}).then(function(rows){if(rows&&rows.length>0&&rows[0].data){var d=rows[0].data;var cl=d.locations||[];cl.forEach(function(l){if(!l.events)l.events=[];if(!l.memories)l.memories=[]});var cw=d.wishlist||[];var ca=d.anniversaries||[];var ct=(d.things&&d.things.length&&d.things[0].text)?d.things:null;var cle=d.letters||[];var cb=d.bulletins||[];var ids={};locs.forEach(function(l){ids[l.id]=true});cl.forEach(function(l){if(!ids[l.id]){locs.push(l);ids[l.id]=true}});ids={};wish.forEach(function(w){ids[w.id]=true});cw.forEach(function(w){if(!ids[w.id]){wish.push(w);ids[w.id]=true}});ids={};annis.forEach(function(a){ids[a.id]=true});ca.forEach(function(a){if(!ids[a.id]){annis.push(a);ids[a.id]=true}});ids={};letters.forEach(function(l){ids[l.id]=true});cle.forEach(function(l){if(!ids[l.id]){letters.push(l);ids[l.id]=true}});if(ct&&(!things||!things.length||!things[0].text)){things=ct};bulletins=cb.length>bulletins.length?cb:bulletins;cdPri=d.cdPrimary||cdPri;save();setDot('g');refreshAll();renderBulletin()}}).catch(function(){setDot('r')})}
-
+function saveCloud(d){
+  if(!GH_TOKEN){var t=prompt('首次云同步需要GitHub Token：\n\n去 github.com/settings/tokens 创建\n勾选repo权限后复制过来');if(t){localStorage.setItem('gh_token',t);GH_TOKEN=t;toast('Token已保存，开始云同步')}else{toast('跳过，可稍后在统计页设置')};return}
+  _syncing=true;
+  var pkg={locations:locs,wishlist:wish,anniversaries:annis,things:things,letters:letters,bulletins:bulletins,cdPrimary:cdPri,updatedAt:new Date().toISOString()};
+  var json=JSON.stringify(pkg);
+  var content=btoa(unescape(encodeURIComponent(json)));
+  var x=new XMLHttpRequest();x.timeout=10000;
+  x.open('GET','https://api.github.com/repos/'+GH_REPO+'/contents/'+GH_FILE+'?ref=main');
+  x.setRequestHeader('Authorization','Bearer '+GH_TOKEN);
+  x.setRequestHeader('Accept','application/vnd.github.v3+json');
+  x.onload=function(){
+    var sha=null;if(x.status===200){try{sha=JSON.parse(x.responseText).sha}catch(e){}}
+    var p2=new XMLHttpRequest();p2.timeout=15000;
+    p2.open('PUT','https://api.github.com/repos/'+GH_REPO+'/contents/'+GH_FILE);
+    p2.setRequestHeader('Authorization','Bearer '+GH_TOKEN);
+    p2.setRequestHeader('Accept','application/vnd.github.v3+json');
+    p2.setRequestHeader('Content-Type','application/json');
+    var body={message:'sync data',content:content,branch:'main'};
+    if(sha)body.sha=sha;
+    p2.onload=function(){setDot('g');_syncing=false};
+    p2.onerror=function(){setDot('y');_syncing=false};
+    p2.send(JSON.stringify(body));
+  };
+  x.onerror=function(){setDot('y');_syncing=false};
+  x.send();
+}
+function fetchCloud(){
+  var x=new XMLHttpRequest();x.timeout=10000;
+  x.open('GET','https://raw.githubusercontent.com/'+GH_REPO+'/main/'+GH_FILE);
+  x.onload=function(){
+    if(x.status!==200)return;
+    try{
+      var d=JSON.parse(x.responseText);
+      if(!d||!d.updatedAt)return;
+      if(localStorage.getItem('last_sync_ts')===d.updatedAt)return;
+      localStorage.setItem('last_sync_ts',d.updatedAt);
+      var cl=d.locations||[];cl.forEach(function(l){if(!l.events)l.events=[];if(!l.memories)l.memories=[]});
+      var ids={};locs.forEach(function(l){ids[l.id]=true});
+      cl.forEach(function(l){if(!ids[l.id]){locs.push(l);ids[l.id]=true}});
+      ids={};wish.forEach(function(w){ids[w.id]=true});
+      (d.wishlist||[]).forEach(function(w){if(!ids[w.id]){wish.push(w);ids[w.id]=true}});
+      ids={};annis.forEach(function(a){ids[a.id]=true});
+      (d.anniversaries||[]).forEach(function(a){if(!ids[a.id]){annis.push(a);ids[a.id]=true}});
+      ids={};letters.forEach(function(l){ids[l.id]=true});
+      (d.letters||[]).forEach(function(l){if(!ids[l.id]){letters.push(l);ids[l.id]=true}});
+      if(d.things&&d.things.length&&d.things[0].text){var ti={};things.forEach(function(t){ti[t.text]=true});d.things.forEach(function(t){if(!ti[t.text]){things.push(t);ti[t.text]=true}})}
+      if(d.bulletins&&d.bulletins.length>bulletins.length)bulletins=d.bulletins;
+      cdPri=d.cdPrimary||cdPri;
+      save();setDot('g');refreshAll();renderBulletin();
+    }catch(e){}
+  };
+  x.onerror=function(){};
+  x.send();
+}
 function setDot(c){var d=document.getElementById('cdot');d.className='dot '+c}
 
 // ==================== SHARE SYNC (works everywhere, no backend) ====================
@@ -683,6 +734,7 @@ renderHome();
 renderBulletin();
 setDot('y');
 fetchCloud();
+setInterval(function(){fetchCloud()},SYNC_INTERVAL);
 // Register PWA service worker for offline caching
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('data:application/javascript,'+encodeURIComponent(
