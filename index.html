@@ -286,7 +286,7 @@ function initMap(){
 }
 function renderMapMarkers(){ml.clearLayers();wml.clearLayers();locs.forEach(function(l){var i=L.divIcon({className:'cm',html:'<div class="mdot">'+(l.emoji||'📍')+'</div>',iconSize:[38,38],iconAnchor:[19,19]});var m=L.marker([l.lat,l.lng],{icon:i}).addTo(ml);m.bindTooltip('<b>'+esc(l.name)+'</b>'+(l.photos.length?'<br><img src="'+l.photos[0]+'" style="width:80px;height:60px;object-fit:cover;border-radius:6px;margin-top:4px">':''),{className:'mktip',direction:'top',offset:[0,-10]});m.on('click',function(e){L.DomEvent.stopPropagation(e);openDetail(l.id)})});wish.forEach(function(w){var i=L.divIcon({className:'cm',html:'<div class="mdot mwish">💭</div>',iconSize:[38,38],iconAnchor:[19,19]});var m=L.marker([w.lat,w.lng],{icon:i,opacity:0.6}).addTo(wml);m.bindTooltip('<b>'+esc(w.name)+'</b> （想去）',{className:'mktip',direction:'top',offset:[0,-10]});m.on('click',function(e){L.DomEvent.stopPropagation(e);promoteWish(w.id)})})}function updateRoute(){if(rline){map.removeLayer(rline);rline=null}if(!showR||locs.length<2)return;var s=locs.slice().sort(function(a,b){return a.createdAt-b.createdAt});rline=L.polyline(s.map(function(l){return[l.lat,l.lng]}),{color:'#F4ACB7',weight:2.5,opacity:0.5,dashArray:'8 5',lineCap:'round'}).addTo(map)}
 function toggleRoute(){showR=!showR;document.getElementById('routeBtn').classList.toggle('ac',showR);updateRoute()}
-function uh(){var e=document.getElementById('hint');if(am)e.textContent='📍 现在在地图上点击你要标记的位置！';else if(wm)e.textContent='💭 在地图上点击你想去的地方';else e.textContent='👆 点击这里，然后在地图上点一个位置来标记'}
+function uh(){var e=document.getElementById('hint');if(am){e.textContent='📍 现在在地图上点击你要标记的位置！';document.body.style.cursor='crosshair'}else if(wm){e.textContent='💭 在地图上点击你想去的地方';document.body.style.cursor='crosshair'}else{e.textContent='👆 点击这里，然后在地图上点一个位置来标记';document.body.style.cursor=''}}
 
 // ==================== GEOCODING ====================
 function sq(q,cb){var x=new XMLHttpRequest();x.timeout=8000;x.open('GET','https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=zh&q='+encodeURIComponent(q));x.onload=function(){if(x.status===200)try{cb(JSON.parse(x.responseText))}catch(e){cb([])}else cb([])};x.onerror=function(){cb([])};x.ontimeout=function(){cb([])};x.send()}
@@ -300,14 +300,34 @@ function selSR(i){var c=document.getElementById('sr'),r=c._r[i];if(!r)return;c.c
 
 // ==================== PIN ====================
 function showPin(lat,lng,addr){var n=addr?addr.split(',')[0]:'这个位置';document.getElementById('pn').textContent=n;document.getElementById('pa').textContent=addr||'';var pin=document.getElementById('pin'),plb=document.getElementById('plb');var pt=map.latLngToContainerPoint([lat,lng]);pin.style.left=pt.x+'px';pin.style.top=pt.y+'px';pin.style.display='block';plb.style.left=pt.x+'px';plb.style.top=pt.y+'px';plb.style.display='block';if(sm)map.removeLayer(sm);var icon=L.divIcon({className:'cm',html:'<div class="mdot">📍</div>',iconSize:[38,38],iconAnchor:[19,19]});sm=L.marker([lat,lng],{icon:icon}).addTo(map);setTimeout(function(){var def=addr?addr.split(',')[0].trim():'';showAddModal(lat,lng,addr,def)},300)}
-function showAddModal(lat,lng,addr,name){document.getElementById('modal').innerHTML='<div class="addmod" onclick="if(event.target===this)closeAddMod()"><div class="addbox" onclick="event.stopPropagation()"><h3>✨ 标记这个地点</h3>'+'<div class="addr">'+(addr?'📍 '+esc(addr):'📍 正在获取地址...')+'</div><input type="text" id="amodName" value="'+esa(name||'')+'" placeholder="给这个地方起个名字～" onkeydown="if(event.key===\'Enter\')doAddMod()"><div class="arow">📅 <input type="date" id="amodDate" value="'+new Date().toISOString().slice(0,10)+'"></div><div class="emos2" id="amodEmos"></div><div class="btns"><button class="cancel" onclick="closeAddMod()">取消</button><button class="ok" onclick="doAddMod()">💾 保存</button></div></div></div>';var emos='📍,🏖️,🏔️,🏯,🌃,🏝️,🎡,🗼,🏛️,🎢,🌅,🏕️,🛳️,✈️,💒,🌸,🌊,⛰️,🏰,🌋,🏜️,🗽,🕌,❄️,🍜,🏘️'.split(',');var selEmo=pickEmoji(name||'');var ec=document.getElementById('amodEmos');emos.forEach(function(e){var b=document.createElement('button');b.textContent=e;if(e===selEmo)b.classList.add('on');b.onclick=function(){ec.querySelectorAll('button').forEach(function(bb){bb.classList.remove('on')});b.classList.add('on');selEmo=e};ec.appendChild(b)});window._addLat=lat;window._addLng=lng;window._addAddr=addr;window._addEmo=selEmo}
+function showAddModal(lat,lng,addr,name){
+  try{
+    var h='';
+    h+='<div class="addmod" onclick="if(event.target===this)closeAddMod()">';
+    h+='<div class="addbox" onclick="event.stopPropagation()">';
+    h+='<h3>✨ 标记这个地点</h3>';
+    h+='<div class="addr">'+(addr?'📍 '+esc(addr):'📍 正在获取地址...')+'</div>';
+    h+='<input type="text" id="amodName" value="'+esa(name||'')+'" placeholder="给这个地方起个名字～">';
+    h+='<div class="arow">📅 <input type="date" id="amodDate" value="'+new Date().toISOString().slice(0,10)+'"></div>';
+    h+='<div class="emos2" id="amodEmos"></div>';
+    h+='<div class="btns"><button class="cancel" onclick="closeAddMod()">取消</button>';
+    h+='<button class="ok" onclick="doAddMod()">💾 保存</button></div>';
+    h+='</div></div>';
+    document.getElementById('modal').innerHTML=h;
+    var emos='📍,🏖️,🏔️,🏯,🌃,🏝️,🎡,🗼,🏛️,🎢,🌅,🏕️,🛳️,✈️,💒,🌸,🌊,⛰️,🏰,🌋,🏜️,🗽,🕌,❄️,🍜,🏘️'.split(',');
+    var selEmo=pickEmoji(name||'');
+    var ec=document.getElementById('amodEmos');
+    if(ec){emos.forEach(function(e){var b=document.createElement('button');b.textContent=e;if(e===selEmo)b.classList.add('on');b.onclick=function(){var bb=ec.querySelectorAll('button');for(var i=0;i<bb.length;i++)bb[i].classList.remove('on');b.classList.add('on');selEmo=e};ec.appendChild(b)})}
+    window._addLat=lat;window._addLng=lng;window._addAddr=addr;window._addEmo=selEmo;
+  }catch(e){alert('弹窗出错: '+e.message)}
+}
 function closeAddMod(){document.getElementById('modal').innerHTML='';document.getElementById('pin').style.display='none';document.getElementById('plb').style.display='none';if(sm){map.removeLayer(sm);sm=null}}
 function doAddMod(){var name=document.getElementById('amodName').value.trim();if(!name){toast('⚠️ 请给地点起个名字');return}if(window._addLat===undefined||window._addLng===undefined||isNaN(window._addLat)){toast('⚠️ 位置信息丢失，请重新选择');closeAddMod();return}var date=document.getElementById('amodDate').value;var addr=window._addAddr||'';var lat=window._addLat,lng=window._addLng;var emo=window._addEmo||'📍';closeAddMod();if(wm)createWish(lat,lng,name,addr);else createLocFull(lat,lng,name,addr,date,emo)}
 function createLocFull(lat,lng,name,addr,date,emo){var loc={id:uid(),name:name,address:addr||'',lat:lat,lng:lng,date:date||new Date().toISOString().slice(0,10),emoji:emo||pickEmoji(name),photos:[],notes:'',memories:[],events:[],createdAt:Date.now()};locs.push(loc);save();renderMapMarkers();updateRoute();renderSList();spawnHearts(12);openDetail(loc.id);toast('✨ '+name+' 已点亮！')}
 
 // ==================== ADD ====================
-function enterAdd(){am=true;wm=false;uh();toast('📍 在地图上点击你去过的地方');document.getElementById('hint').textContent='📍 现在在地图上点击你要标记的位置！'}
-function addAtCenter(){var c=map.getCenter();showAddModal(c.lat,c.lng,'','')}
+function enterAdd(){am=true;wm=false;uh();toast('📍 在地图上点击你要标记的位置！');document.getElementById('hint').textContent='📍 现在在地图上点击你要标记的位置！';document.body.style.cursor='crosshair'}
+function addAtCenter(){try{var c=map.getCenter();showAddModal(c.lat,c.lng,'','')}catch(e){alert('出错: '+e.message)}}
 function enterWish(){wm=true;am=false;uh();toast('💭 在地图上点击你想去的地方')}
 function createLoc(lat,lng,name,addr){var loc={id:uid(),name:name,address:addr||'',lat:lat,lng:lng,date:new Date().toISOString().slice(0,10),emoji:pickEmoji(name),photos:[],notes:'',memories:[],events:[],createdAt:Date.now()};locs.push(loc);save();renderMapMarkers();updateRoute();renderSList();spawnHearts(12);openDetail(loc.id);toast('✨ '+name+' 已点亮！')}
 function createWish(lat,lng,name,addr){wish.push({id:uid(),name:name,address:addr||'',lat:lat,lng:lng,createdAt:Date.now()});save();renderMapMarkers();renderSList();toast('💭 '+name+' 加入愿望清单！')}
