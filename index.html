@@ -318,7 +318,7 @@ var map,ml,wml,rline,showR=false,selId=null,pp=null,am=false,wm=false,sm=null,st
 function load(){try{var d=JSON.parse(localStorage.getItem(SK))||{};locs=d.locations||[];wish=d.wishlist||[];annis=d.anniversaries||[];letters=d.letters||[];things=(d.things&&d.things.length>0&&d.things[0].text)?d.things:buildThings();bulletins=d.bulletins||[];cdPri=d.cdPrimary||null;locs.forEach(function(l){if(!l.events)l.events=[];if(!l.memories)l.memories=[]})}catch(e){reset()}}
 function buildThings(){return things0.map(function(t,i){return{id:'t'+i,text:t,done:false}})}
 function reset(){locs=[];wish=[];annis=[];letters=[];things=buildThings();cdPri=null}
-function save(){var d={locations:locs,wishlist:wish,anniversaries:annis,things:things,letters:letters,bulletins:bulletins,cdPrimary:cdPri};localStorage.setItem(SK,JSON.stringify(d));saveCloud(d)}
+function save(){var d={locations:locs,wishlist:wish,anniversaries:annis,things:things,letters:letters,bulletins:bulletins,cdPrimary:cdPri};localStorage.setItem(SK,JSON.stringify(d));if(!_syncing)saveCloud(d)}
 function uid(){return'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function toast(m){var e=document.createElement('div');e.className='toast';e.textContent=m;document.body.appendChild(e);setTimeout(function(){e.remove()},1800)}
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
@@ -373,7 +373,7 @@ function fetchCloud(){
       if(d.things&&d.things.length&&d.things[0].text){var ti={};things.forEach(function(t){ti[t.text]=true});d.things.forEach(function(t){if(!ti[t.text]){things.push(t);ti[t.text]=true}})}
       if(d.bulletins&&d.bulletins.length>bulletins.length)bulletins=d.bulletins;
       cdPri=d.cdPrimary||cdPri;
-      save();setDot('g');refreshAll();renderBulletin();
+      _syncing=true;save();_syncing=false;setDot('g');refreshAll();renderBulletin();
     }catch(e){}
   };
   x.onerror=function(){};
@@ -467,7 +467,7 @@ function initMap(){
   setTimeout(function(){map.invalidateSize()},300);
   renderMapMarkers();renderSList();
 }
-function renderMapMarkers(){ml.clearLayers();wml.clearLayers();locs.forEach(function(l){var i=L.divIcon({className:'cm',html:'<div class="mdot">'+(l.emoji||'📍')+'</div>',iconSize:[38,38],iconAnchor:[19,19]});var m=L.marker([l.lat,l.lng],{icon:i}).addTo(ml);m.bindTooltip('<b>'+esc(l.name)+'</b>'+(l.photos.length?'<br><img src="'+l.photos[0]+'" style="width:80px;height:60px;object-fit:cover;border-radius:6px;margin-top:4px">':''),{className:'mktip',direction:'top',offset:[0,-10]});m.on('click',function(e){L.DomEvent.stopPropagation(e);openDetail(l.id)})});wish.forEach(function(w){var i=L.divIcon({className:'cm',html:'<div class="mdot mwish">💭</div>',iconSize:[38,38],iconAnchor:[19,19]});var m=L.marker([w.lat,w.lng],{icon:i,opacity:0.6}).addTo(wml);m.bindTooltip('<b>'+esc(w.name)+'</b> （想去）',{className:'mktip',direction:'top',offset:[0,-10]});m.on('click',function(e){L.DomEvent.stopPropagation(e);promoteWish(w.id)})})}function updateRoute(){if(rline){map.removeLayer(rline);rline=null}if(!showR||locs.length<2)return;var s=locs.slice().sort(function(a,b){return a.createdAt-b.createdAt});rline=L.polyline(s.map(function(l){return[l.lat,l.lng]}),{color:'#F4ACB7',weight:2.5,opacity:0.5,dashArray:'8 5',lineCap:'round'}).addTo(map)}
+function renderMapMarkers(){ml.clearLayers();wml.clearLayers();locs.forEach(function(l){var i=L.divIcon({className:'cm',html:'<div class="mdot">'+(l.emoji||'📍')+'</div>',iconSize:[38,38],iconAnchor:[19,19]});var m=L.marker([l.lat,l.lng],{icon:i}).addTo(ml);m.bindTooltip('<b>'+esc(l.name)+'</b>'+(l.photos.length?'<br><img src="'+l.photos[0]+'" style="width:80px;height:60px;object-fit:cover;border-radius:6px;margin-top:4px">':''),{className:'mktip',direction:'top',offset:[0,-10]});m.on('click',function(e){L.DomEvent.stopPropagation(e);openDetail(l.id)})});wish.forEach(function(w){var i=L.divIcon({className:'cm',html:'<div class="mdot mwish">💭</div>',iconSize:[38,38],iconAnchor:[19,19]});var m=L.marker([w.lat,w.lng],{icon:i}).addTo(wml);m.bindTooltip('<b>'+esc(w.name)+'</b> （想去）',{className:'mktip',direction:'top',offset:[0,-10]});m.on('click',function(e){L.DomEvent.stopPropagation(e);promoteWish(w.id)})})}function updateRoute(){if(rline){map.removeLayer(rline);rline=null}if(!showR||locs.length<2)return;var s=locs.slice().sort(function(a,b){return a.createdAt-b.createdAt});rline=L.polyline(s.map(function(l){return[l.lat,l.lng]}),{color:'#F4ACB7',weight:2.5,opacity:0.5,dashArray:'8 5',lineCap:'round'}).addTo(map)}
 function toggleRoute(){showR=!showR;document.getElementById('routeBtn').classList.toggle('ac',showR);updateRoute()}
 function dismissHint(){localStorage.setItem('hint_visible','0');document.getElementById('hint').style.display='none';document.getElementById('hintToggle').style.display='block'}
 function showHint(){localStorage.setItem('hint_visible','1');document.getElementById('hint').style.display='block';document.getElementById('hintToggle').style.display='none';uh()}
