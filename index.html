@@ -14,7 +14,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:#FFF5F0;color:#4A3040;height:100dvh;overflow:hidden}
-.topbar{position:fixed;top:0;left:0;right:0;z-index:1000;background:#fff;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:50px}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:1000;background:#fff;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;padding:0 18px;padding-top:env(safe-area-inset-top);height:calc(50px + env(safe-area-inset-top))}
 .topbar .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
 .topbar .dot{width:8px;height:8px;border-radius:50%;margin-right:2px}
 .topbar .dot.g{background:#4CAF50}.topbar .dot.r{background:#ccc}.topbar .dot.y{background:#FF9800}
@@ -39,13 +39,13 @@ body{font-size:14px}
 .mdl{font-size:14px}
 .mdl input{font-size:14px}
 .empty{font-size:13px}
-.topbar{padding:0 6px;height:44px}
+.topbar{padding:0 6px;padding-top:env(safe-area-inset-top);height:calc(44px + env(safe-area-inset-top))}
 .topbar .brand{font-size:13px;gap:4px}
 .topbar .brand span{font-size:12px}
 .topbar .tabs{overflow-x:auto;gap:0;-webkit-overflow-scrolling:touch}
 .topbar .tabs button{padding:6px 7px;font-size:15px;white-space:nowrap;flex-shrink:0}
 .topbar .tabs button em{display:none}
-.main{padding-top:44px;height:100dvh}
+.main{padding-top:calc(44px + env(safe-area-inset-top));height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
 .mwrap{min-width:100vw}.side{display:none}
 .page.show{display:block}.page-inner{overflow-y:auto}
 .page-inner{padding:12px 10px}
@@ -72,7 +72,7 @@ body{font-size:14px}
 .lock-input{width:200px;font-size:14px}
 .addbox{width:95vw !important;max-width:360px;padding:20px 16px}
 }
-.main{display:flex;height:100dvh;padding-top:50px}
+.main{display:flex;height:100dvh;padding-top:calc(50px + env(safe-area-inset-top));padding-bottom:env(safe-area-inset-bottom)}
 .page{display:none;flex:1;overflow-y:auto;overflow-x:hidden}
 .page.show{display:flex}
 .page-inner{flex:1;padding:16px 20px}
@@ -306,7 +306,7 @@ body{font-size:14px}
 var SUPABASE_URL='https://wrnjhdgoriflwchrzfem.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndybmpoZGdvcmlmbHdjaHJ6ZmVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTU0NzIsImV4cCI6MjA5NTYzMTQ3Mn0.G542eQ0p_efS49gPc-7ahw5LxaXTXMdqg6h_9DOX8Zk';
 var CODE='ourlove2024';
-var SK='couple_hub_v3';var GH_TOKEN=localStorage.getItem('gh_token')||'';var SYNC_INTERVAL=15000;var _syncing=false;
+var SK='couple_hub_v3';var GH_TOKEN=localStorage.getItem('gh_token')||'';var SYNC_INTERVAL=10000;var _syncing=false;
 
 // ==================== DATA ====================
 var things0='👫一起看日出|🌅一起看日落|🌟一起看星星|🏕️一起去露营|🏖️一起去海边|⛰️一起爬山|🎢一起去游乐园|🎬一起去看电影|🍳一起做一顿饭|🎂一起做蛋糕|📸拍一组情侣照|💌给对方写一封情书|🎁准备惊喜礼物|🌸一起看花海|🍂一起踩落叶|❄️一起看雪|🎆一起看烟花|🎵去音乐会|🏛️去博物馆|📚去图书馆|🚲一起骑车|🛶一起划船|🐱一起撸猫|🐶一起遛狗|🎨一起画画|🧩一起拼拼图|🎮一起打游戏|🏀一起运动|☕去咖啡馆|🍣吃日料|🍲吃火锅|🍦吃冰淇淋|🍓去摘草莓|🛒逛超市|👗一起逛街|💐送花|💇帮对方吹头发|🤗拥抱一分钟|😴睡到自然醒|🍳为对方做早餐|🗺️去陌生城市|🚗自驾游|🏊游泳|🎿滑雪|🐬看海豚|🦒去动物园|🌌一起看极光|🏯去古镇|🌉在桥上散步|🎡坐摩天轮|🗼去看铁塔|🏰去城堡|🌋看火山|🏜️去沙漠|🛳坐邮轮|🎈坐热气球|✈️出国旅行|🏠装饰房间|🌱养植物|📖给对方读书|🎤去KTV|👻去鬼屋|🎃过万圣节|🎄装饰圣诞树|🧧包饺子|🎂庆祝生日|💍挑戒指|📅规划未来|👶想宝宝名字|🏡看房子|💒参加婚礼|🫂陪伴难过的时刻|🤝牵手走过一条街|👀对视三分钟|🗣️说我爱你|💤一起进入梦乡'.split('|');
