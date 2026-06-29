@@ -360,7 +360,44 @@ function createLocFull(lat,lng,name,addr,date,emo){var loc={id:uid(),name:name,a
 
 // ==================== ADD ====================
 function enterAdd(){am=true;wm=false;uh();toast('📍 在地图上点击你要标记的位置！');document.getElementById('hint').textContent='📍 现在在地图上点击你要标记的位置！';document.body.style.cursor='crosshair'}
-function addAtCenter(){var c=map.getCenter();showAddModal(c.lat,c.lng,'','')}
+function doSaveCenter(){
+  var n=document.getElementById('amodName3').value.trim();
+  if(!n){toast('⚠️ 请输入名字');return}
+  var d=document.getElementById('amodDate3').value;
+  var loc={id:uid(),name:n,address:'',lat:window._addLat,lng:window._addLng,date:d,emoji:window._addEmo||'📍',photos:[],notes:'',memories:[],events:[],createdAt:Date.now()};
+  locs.push(loc);save();renderMapMarkers();updateRoute();renderSList();
+  document.getElementById('modal').innerHTML='';
+  spawnHearts(12);openDetail(loc.id);toast('✨ '+n+' 已点亮！')
+}
+function addAtCenter(){
+  var c=map.getCenter();window._addLat=c.lat;window._addLng=c.lng;window._addEmo='📍';
+  var m=document.getElementById('modal');m.innerHTML='';
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.35);z-index:99999;display:flex;align-items:center;justify-content:center';
+  ov.onclick=function(e){if(e.target===ov)m.innerHTML=''};
+  var bx=document.createElement('div');
+  bx.style.cssText='background:#fff;border-radius:18px;padding:28px 24px;width:360px;max-width:92vw;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.15)';
+  bx.onclick=function(e){e.stopPropagation()};
+  var h3=document.createElement('h3');h3.textContent='✨ 标记这个地点';h3.style.cssText='font-size:18px;margin-bottom:4px';
+  var addr=document.createElement('p');addr.textContent='📍 当前地图中心';addr.style.cssText='font-size:11px;color:#bbb;margin-bottom:12px';
+  var inp=document.createElement('input');inp.id='amodName3';inp.placeholder='给这个地方起个名字～';inp.style.cssText='width:100%;padding:10px 14px;border:2px solid #eee;border-radius:12px;font-size:14px;font-family:inherit;outline:none;text-align:center;margin-bottom:8px;color:#4A3040';
+  inp.onkeydown=function(e){if(e.key==='Enter')doSaveCenter()};
+  var dt=document.createElement('input');dt.type='date';dt.id='amodDate3';dt.value=new Date().toISOString().slice(0,10);dt.style.cssText='width:100%;padding:10px 14px;border:2px solid #eee;border-radius:12px;font-size:14px;font-family:inherit;outline:none;text-align:center;margin-bottom:16px;color:#4A3040';
+  var emos=['📍','🏖️','🏔️','🏯','🌃','🏝️','🎡','🗼','🏛️','🎢','🌅','🏕️','🛳️','✈️','💒','🌸','🌊','⛰️','🏰'];
+  var er=document.createElement('div');er.style.cssText='display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-bottom:16px';
+  emos.forEach(function(e){
+    var eb=document.createElement('button');eb.textContent=e;eb.style.cssText='width:28px;height:28px;border-radius:50%;border:2px solid transparent;background:#fafafa;font-size:14px;cursor:pointer';
+    if(e==='📍')eb.style.borderColor='#E8879B';
+    eb.onclick=function(){var bb=er.querySelectorAll('button');for(var i=0;i<bb.length;i++){bb[i].style.borderColor='transparent'}eb.style.borderColor='#E8879B';window._addEmo=e};
+    er.appendChild(eb);
+  });
+  var bt=document.createElement('div');bt.style.cssText='display:flex;gap:8px';
+  var cb=document.createElement('button');cb.textContent='取消';cb.style.cssText='flex:1;padding:11px;border:none;border-radius:20px;font-size:13px;font-family:inherit;background:#f5f5f5;color:#999;cursor:pointer';cb.onclick=function(){m.innerHTML=''};
+  var sb=document.createElement('button');sb.textContent='💾 保存';sb.style.cssText='flex:1;padding:11px;border:none;border-radius:20px;font-size:13px;font-family:inherit;font-weight:600;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:#fff;cursor:pointer';sb.onclick=doSaveCenter;
+  bt.appendChild(cb);bt.appendChild(sb);
+  bx.appendChild(h3);bx.appendChild(addr);bx.appendChild(inp);bx.appendChild(dt);bx.appendChild(er);bx.appendChild(bt);
+  ov.appendChild(bx);m.appendChild(ov);
+}
 function testAdd(){var m=document.getElementById('modal');m.innerHTML='<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center"><div style="background:white;padding:30px;border-radius:16px;text-align:center"><h2>✅ 弹窗测试成功!</h2><p>说明基础弹窗功能正常</p><button onclick="this.parentElement.parentElement.remove()" style="margin-top:12px;padding:10px 30px;background:#E8879B;color:white;border:none;border-radius:20px;font-size:16px;cursor:pointer">关闭</button></div></div>';}
 function enterWish(){wm=true;am=false;uh();toast('💭 在地图上点击你想去的地方')}
 function createLoc(lat,lng,name,addr){var loc={id:uid(),name:name,address:addr||'',lat:lat,lng:lng,date:new Date().toISOString().slice(0,10),emoji:pickEmoji(name),photos:[],notes:'',memories:[],events:[],createdAt:Date.now()};locs.push(loc);save();renderMapMarkers();updateRoute();renderSList();spawnHearts(12);openDetail(loc.id);toast('✨ '+name+' 已点亮！')}
