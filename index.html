@@ -13,16 +13,6 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-.lock-screen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:linear-gradient(135deg,#FFF5F7,#FFE0E7,#FFF0F3);display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:inherit}
-.lock-box{text-align:center;padding:40px 30px}
-.lock-icon{font-size:64px;margin-bottom:16px;animation:pulse 2s ease-in-out infinite}
-.lock-title{font-size:20px;font-weight:700;color:#E8879B;margin-bottom:8px}
-.lock-sub{font-size:12px;color:#bbb;margin-bottom:24px}
-.lock-input{width:240px;padding:12px 16px;border:2px solid rgba(244,172,183,0.3);border-radius:24px;font-size:16px;text-align:center;font-family:inherit;outline:none;background:rgba(255,255,255,0.8);color:#4A3040;letter-spacing:4px}
-.lock-input:focus{border-color:#F4ACB7}.lock-input::placeholder{color:#ddd;letter-spacing:0}
-.lock-btn{margin-top:12px;padding:10px 40px;border:none;border-radius:20px;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(232,135,155,0.3)}
-.lock-btn:hover{transform:scale(1.04)}.lock-err{color:#D4687C;font-size:11px;margin-top:8px;min-height:18px}
-.lock-hint{font-size:10px;color:#ccc;margin-top:16px}
 body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:#FFF5F0;color:#4A3040;height:100dvh;overflow:hidden}
 .topbar{position:fixed;top:0;left:0;right:0;z-index:1000;background:#fff;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:50px}
 .topbar .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
@@ -48,7 +38,6 @@ body{font-size:14px}
 .banner .bn{font-size:40px}
 .mdl{font-size:14px}
 .mdl input{font-size:14px}
-.lock-title{font-size:22px}.lock-sub{font-size:13px}
 .empty{font-size:13px}
 .topbar{padding:0 6px;height:44px}
 .topbar .brand{font-size:13px;gap:4px}
@@ -264,18 +253,6 @@ body{font-size:14px}
 </head>
 <body>
 
-<div class="lock-screen" id="lockScreen">
-  <div class="lock-box">
-    <div class="lock-icon">💕</div>
-    <div class="lock-title" id="lockTitle">欢迎回来</div>
-    <div class="lock-sub" id="lockSub">输入密码进入我们的小窝</div>
-    <input type="password" class="lock-input" id="lockInput" placeholder="🔑 密码" maxlength="20" onkeydown="if(event.key==='Enter')unlock()">
-    <div class="lock-err" id="lockErr"></div>
-    <button class="lock-btn" onclick="unlock()">💝 进入小窝</button>
-    <div class="lock-hint" onclick="resetPassword()">忘记密码？点我重置</div>
-  </div>
-</div>
-
 <div class="topbar">
   <div class="brand">
     <div class="dot g" id="cdot"></div>
@@ -325,29 +302,6 @@ body{font-size:14px}
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ==================== LOCK ====================
-var LOCK_KEY='couple_lock_v2';
-function initLock(){
-  var pw=localStorage.getItem(LOCK_KEY);
-  if(!pw){document.getElementById('lockTitle').textContent='设置密码';document.getElementById('lockSub').textContent='第一次来，设置一个属于你们的密码吧';document.getElementById('lockInput').placeholder='🔑 设置密码'}
-  else{document.getElementById('lockTitle').textContent='欢迎回来 💕';document.getElementById('lockSub').textContent='输入密码进入我们的小窝'}
-  document.getElementById('lockScreen').style.display='flex';
-}
-function unlock(){
-  var input=document.getElementById('lockInput').value.trim();
-  if(!input){document.getElementById('lockErr').textContent='请输入密码';return}
-  var stored=localStorage.getItem(LOCK_KEY);
-  if(!stored){localStorage.setItem(LOCK_KEY,btoa(input));document.getElementById('lockScreen').style.display='none';toast('🔐 密码已设置！下次用它进入');return}
-  if(btoa(input)===stored){document.getElementById('lockScreen').style.display='none';return}
-  document.getElementById('lockErr').textContent='密码不对哦～再试试';
-  document.getElementById('lockInput').value='';
-}
-function resetPassword(){
-  if(!confirm('确定要重置密码吗？之前的密码将失效。'))return;
-  localStorage.removeItem(LOCK_KEY);initLock();
-  document.getElementById('lockErr').textContent='密码已重置，请设置新密码';
-}
-
 // ==================== CONFIG ====================
 var SUPABASE_URL='https://wrnjhdgoriflwchrzfem.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndybmpoZGdvcmlmbHdjaHJ6ZmVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTU0NzIsImV4cCI6MjA5NTYzMTQ3Mn0.G542eQ0p_efS49gPc-7ahw5LxaXTXMdqg6h_9DOX8Zk';
@@ -377,40 +331,52 @@ function fetchCloud(){fetch(SUPABASE_URL+'/rest/v1/couple_data?couple_code=eq.'+
 function setDot(c){var d=document.getElementById('cdot');d.className='dot '+c}
 
 // ==================== SHARE SYNC (works everywhere, no backend) ====================
+function compressPhoto(src,cb){
+  var img=new Image();img.onload=function(){
+    var c=document.createElement('canvas');var s=120/img.width;c.width=120;c.height=img.height*s;
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    cb(c.toDataURL('image/jpeg',0.5));
+  };img.src=src
+}
 function generateShareCode(){
-  var d={locations:locs,wishlist:wish,anniversaries:annis,things:things,letters:letters,bulletins:bulletins,cdPrimary:cdPri};
-  var json=JSON.stringify(d);
-  // Compress by using a compact encoding
-  var code=btoa(unescape(encodeURIComponent(json)));
-  // Show modal with share options
-  var m=document.getElementById('modal');m.innerHTML='';
+  var Q='\x27';var m=document.getElementById('modal');m.innerHTML='';
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:99999;display:flex;align-items:center;justify-content:center';
   ov.onclick=function(e){if(e.target===ov)m.innerHTML=''};
   var bx=document.createElement('div');
   bx.style.cssText='background:#fff;border-radius:18px;padding:24px;width:380px;max-width:92vw;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto';
   bx.onclick=function(e){e.stopPropagation()};
-  var h3=document.createElement('h3');h3.textContent='📤 分享数据';h3.style.cssText='font-size:16px;margin-bottom:8px';
-  var p=document.createElement('p');p.textContent='复制下面的链接发给对方，打开即自动导入';p.style.cssText='font-size:11px;color:#bbb;margin-bottom:12px';
-  var url=window.location.origin+window.location.pathname+'#import='+encodeURIComponent(code);
-  // Truncate if too long
-  var displayUrl=url;
-  if(url.length>60)displayUrl=url.substring(0,57)+'...';
-  var ta=document.createElement('textarea');
-  ta.value=url;ta.readOnly=true;ta.style.cssText='width:100%;height:60px;padding:8px;border:2px solid #eee;border-radius:10px;font-size:10px;font-family:monospace;resize:none;word-break:break-all;color:#4A3040;margin-bottom:12px';
-  ta.onclick=function(){ta.select();document.execCommand('copy');toast('📋 链接已复制！发送给对方即可')};
-  var cpBtn=document.createElement('button');
-  cpBtn.textContent='📋 复制链接';cpBtn.style.cssText='padding:10px 24px;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:#fff;border:none;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:12px';
-  cpBtn.onclick=function(){ta.select();document.execCommand('copy');toast('📋 链接已复制！发给对方吧')};
-  var note=document.createElement('p');note.textContent='💡 数据通过链接安全传输，不经过任何服务器';note.style.cssText='font-size:10px;color:#ccc';
-  bx.appendChild(h3);bx.appendChild(p);bx.appendChild(ta);bx.appendChild(cpBtn);bx.appendChild(note);
+  bx.innerHTML='<h3>📤 分享数据给TA</h3><p style=\"color:#bbb;font-size:12px\">地点'+locs.length+' · 纪念日'+annis.length+' · 信件'+letters.length+'</p><p style=\"color:#E8879B;font-weight:600\">⏳ 压缩照片中...</p>';
   ov.appendChild(bx);m.appendChild(ov);
+  var pending=0;var slimLocs=[];
+  function done(){
+    var d={locations:slimLocs,wishlist:wish,anniversaries:annis,things:things,letters:letters,bulletins:bulletins,cdPrimary:cdPri};
+    var json=JSON.stringify(d);var code=btoa(unescape(encodeURIComponent(json)));
+    var url=(window.location.origin+window.location.pathname)+'#d='+encodeURIComponent(code);
+    var kb=Math.round(code.length/1024);
+    bx.innerHTML='';var h3=document.createElement('h3');h3.textContent='📤 分享数据给TA';
+    var p1=document.createElement('p');p1.textContent='地点'+locs.length+' · 纪念日'+annis.length+' · 信件'+letters.length+' · 📸缩略图';p1.style.cssText='font-size:11px;color:#bbb;margin:4px 0';
+    var p2=document.createElement('p');p2.textContent='链接约 '+kb+' KB';p2.style.cssText='font-size:10px;color:#ccc;margin-bottom:8px';
+    var ta=document.createElement('textarea');ta.readOnly=true;ta.value=url;ta.style.cssText='width:100%;height:44px;padding:8px;border:2px solid #eee;border-radius:10px;font-size:10px;font-family:monospace;resize:none;word-break:break-all;color:#4A3040;margin-bottom:10px';
+    var btn=document.createElement('button');btn.textContent='📋 复制链接 发给TA';btn.style.cssText='padding:12px 28px;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:#fff;border:none;border-radius:20px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit';
+    btn.onclick=function(){ta.select();document.execCommand('copy');toast('📋 已复制！微信发给TA吧')};
+    var p3=document.createElement('p');p3.textContent='💡 对方打开链接自动导入（含压缩照片预览）';p3.style.cssText='font-size:10px;color:#ccc;margin-top:8px';
+    bx.appendChild(h3);bx.appendChild(p1);bx.appendChild(p2);bx.appendChild(ta);bx.appendChild(btn);bx.appendChild(p3);
+  }
+  locs.forEach(function(l){
+    if(l.photos.length===0){slimLocs.push({id:l.id,name:l.name,address:l.address||'',lat:l.lat,lng:l.lng,date:l.date,emoji:l.emoji,notes:l.notes||'',memories:l.memories||[],events:l.events||[],photos:[],createdAt:l.createdAt});return}
+    pending++;var compressed=[];
+    l.photos.forEach(function(p){
+      compressPhoto(p,function(cp){compressed.push(cp);if(compressed.length===l.photos.length){slimLocs.push({id:l.id,name:l.name,address:l.address||'',lat:l.lat,lng:l.lng,date:l.date,emoji:l.emoji,notes:l.notes||'',memories:l.memories||[],events:l.events||[],photos:compressed,createdAt:l.createdAt});pending--;if(pending===0)done()}})
+    });
+  });
+  if(pending===0)done();
 }
 function importFromHash(){
   var hash=window.location.hash;
-  if(!hash||hash.indexOf('#import=')!==0)return;
+  if(!hash||hash.indexOf('#d=')!==0)return;
   try{
-    var code=decodeURIComponent(hash.substring(8));
+    var code=decodeURIComponent(hash.substring(3));
     var json=decodeURIComponent(escape(atob(code)));
     var d=JSON.parse(json);
     // Merge imported data
@@ -712,7 +678,6 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(document
 // ==================== START ====================
 load();
 initMap();
-initLock();
 importFromHash();
 renderHome();
 renderBulletin();
