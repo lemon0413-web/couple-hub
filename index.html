@@ -218,6 +218,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
     <div class="search"><div class="box"><input id="si" placeholder="搜索地点..." autocomplete="off"><button onclick="doSearch()">🔍</button></div><div class="results" id="sr"></div></div>
     <div class="tools"><button id="routeBtn" onclick="toggleRoute()" title="路线">✈️</button><button onclick="enterAdd()" title="添加">📍</button><button onclick="enterWish()" title="想去">💭</button></div>
     <button class="big-add-btn" onclick="addAtCenter()">➕ 添加地点</button>
+    <button style="position:absolute;top:10px;right:10px;z-index:999;padding:8px 16px;background:red;color:white;border:none;border-radius:12px;font-size:13px;cursor:pointer;font-weight:700" onclick="testAdd()">🔧 测试弹窗</button>
     <div class="pin" id="pin"></div><div class="plabel" id="plb"><span id="pn"></span><span id="pa"></span></div>
     <div id="btop"></div>
     <div class="hint" id="hint" onclick="enterAdd()">👆 点击这里，然后在地图上点一个位置来标记</div><button class="bigadd" onclick="addAtCenter()" title="快速添加">➕</button>
@@ -303,25 +304,55 @@ function selSR(i){var c=document.getElementById('sr'),r=c._r[i];if(!r)return;c.c
 // ==================== PIN ====================
 function showPin(lat,lng,addr){var n=addr?addr.split(',')[0]:'这个位置';document.getElementById('pn').textContent=n;document.getElementById('pa').textContent=addr||'';var pin=document.getElementById('pin'),plb=document.getElementById('plb');var pt=map.latLngToContainerPoint([lat,lng]);pin.style.left=pt.x+'px';pin.style.top=pt.y+'px';pin.style.display='block';plb.style.left=pt.x+'px';plb.style.top=pt.y+'px';plb.style.display='block';if(sm)map.removeLayer(sm);var icon=L.divIcon({className:'cm',html:'<div class="mdot">📍</div>',iconSize:[38,38],iconAnchor:[19,19]});sm=L.marker([lat,lng],{icon:icon}).addTo(map);setTimeout(function(){var def=addr?addr.split(',')[0].trim():'';showAddModal(lat,lng,addr,def)},300)}
 function showAddModal(lat,lng,addr,name){
-  try{
-    var h='';
-    h+='<div class="addmod" onclick="if(event.target===this)closeAddMod()">';
-    h+='<div class="addbox" onclick="event.stopPropagation()">';
-    h+='<h3>✨ 标记这个地点</h3>';
-    h+='<div class="addr">'+(addr?'📍 '+esc(addr):'📍 正在获取地址...')+'</div>';
-    h+='<input type="text" id="amodName" value="'+esa(name||'')+'" placeholder="给这个地方起个名字～">';
-    h+='<div class="arow">📅 <input type="date" id="amodDate" value="'+new Date().toISOString().slice(0,10)+'"></div>';
-    h+='<div class="emos2" id="amodEmos"></div>';
-    h+='<div class="btns"><button class="cancel" onclick="closeAddMod()">取消</button>';
-    h+='<button class="ok" onclick="doAddMod()">💾 保存</button></div>';
-    h+='</div></div>';
-    document.getElementById('modal').innerHTML=h;
-    var emos='📍,🏖️,🏔️,🏯,🌃,🏝️,🎡,🗼,🏛️,🎢,🌅,🏕️,🛳️,✈️,💒,🌸,🌊,⛰️,🏰,🌋,🏜️,🗽,🕌,❄️,🍜,🏘️'.split(',');
-    var selEmo=pickEmoji(name||'');
-    var ec=document.getElementById('amodEmos');
-    if(ec){emos.forEach(function(e){var b=document.createElement('button');b.textContent=e;if(e===selEmo)b.classList.add('on');b.onclick=function(){var bb=ec.querySelectorAll('button');for(var i=0;i<bb.length;i++)bb[i].classList.remove('on');b.classList.add('on');selEmo=e};ec.appendChild(b)})}
-    window._addLat=lat;window._addLng=lng;window._addAddr=addr;window._addEmo=selEmo;
-  }catch(e){alert('弹窗出错: '+e.message)}
+  var m=document.getElementById('modal');
+  // Build with createElement for reliability
+  m.innerHTML='';
+  var overlay=document.createElement('div');
+  overlay.className='addmod';
+  overlay.onclick=function(e){if(e.target===overlay)closeAddMod()};
+  var box=document.createElement('div');
+  box.className='addbox';
+  box.onclick=function(e){e.stopPropagation()};
+  var h3=document.createElement('h3');
+  h3.textContent='✨ 标记这个地点';
+  box.appendChild(h3);
+  var adiv=document.createElement('div');
+  adiv.className='addr';
+  adiv.textContent=addr?'📍 '+addr:'📍 正在获取地址...';
+  box.appendChild(adiv);
+  var inp=document.createElement('input');
+  inp.type='text';inp.id='amodName';inp.value=name||'';
+  inp.placeholder='给这个地方起个名字～';
+  box.appendChild(inp);
+  var drow=document.createElement('div');drow.className='arow';
+  drow.innerHTML='📅 ';
+  var dinp=document.createElement('input');
+  dinp.type='date';dinp.id='amodDate';
+  dinp.value=new Date().toISOString().slice(0,10);
+  drow.appendChild(dinp);
+  box.appendChild(drow);
+  var erow=document.createElement('div');erow.className='emos2';erow.id='amodEmos';
+  var emos=['📍','🏖️','🏔️','🏯','🌃','🏝️','🎡','🗼','🏛️','🎢','🌅','🏕️','🛳️','✈️','💒','🌸','🌊','⛰️','🏰','🌋','🏜️','🗽','🕌','❄️','🍜','🏘️'];
+  var selEmo=pickEmoji(name||'');
+  emos.forEach(function(e){
+    var b=document.createElement('button');b.textContent=e;
+    if(e===selEmo)b.className='on';
+    b.onclick=function(){var bb=erow.querySelectorAll('button');bb.forEach(function(x){x.className=''});b.className='on';selEmo=e};
+    erow.appendChild(b);
+  });
+  box.appendChild(erow);
+  var btns=document.createElement('div');btns.className='btns';
+  var cancelBtn=document.createElement('button');
+  cancelBtn.className='cancel';cancelBtn.textContent='取消';
+  cancelBtn.onclick=closeAddMod;
+  var saveBtn=document.createElement('button');
+  saveBtn.className='ok';saveBtn.textContent='💾 保存';
+  saveBtn.onclick=doAddMod;
+  btns.appendChild(cancelBtn);btns.appendChild(saveBtn);
+  box.appendChild(btns);
+  overlay.appendChild(box);
+  m.appendChild(overlay);
+  window._addLat=lat;window._addLng=lng;window._addAddr=addr;window._addEmo=selEmo;
 }
 function closeAddMod(){document.getElementById('modal').innerHTML='';document.getElementById('pin').style.display='none';document.getElementById('plb').style.display='none';if(sm){map.removeLayer(sm);sm=null}}
 function doAddMod(){var name=document.getElementById('amodName').value.trim();if(!name){toast('⚠️ 请给地点起个名字');return}if(window._addLat===undefined||window._addLng===undefined||isNaN(window._addLat)){toast('⚠️ 位置信息丢失，请重新选择');closeAddMod();return}var date=document.getElementById('amodDate').value;var addr=window._addAddr||'';var lat=window._addLat,lng=window._addLng;var emo=window._addEmo||'📍';closeAddMod();if(wm)createWish(lat,lng,name,addr);else createLocFull(lat,lng,name,addr,date,emo)}
@@ -329,7 +360,8 @@ function createLocFull(lat,lng,name,addr,date,emo){var loc={id:uid(),name:name,a
 
 // ==================== ADD ====================
 function enterAdd(){am=true;wm=false;uh();toast('📍 在地图上点击你要标记的位置！');document.getElementById('hint').textContent='📍 现在在地图上点击你要标记的位置！';document.body.style.cursor='crosshair'}
-function addAtCenter(){try{var c=map.getCenter();showAddModal(c.lat,c.lng,'','')}catch(e){alert('出错: '+e.message)}}
+function addAtCenter(){var c=map.getCenter();showAddModal(c.lat,c.lng,'','')}
+function testAdd(){var m=document.getElementById('modal');m.innerHTML='<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center"><div style="background:white;padding:30px;border-radius:16px;text-align:center"><h2>✅ 弹窗测试成功!</h2><p>说明基础弹窗功能正常</p><button onclick="this.parentElement.parentElement.remove()" style="margin-top:12px;padding:10px 30px;background:#E8879B;color:white;border:none;border-radius:20px;font-size:16px;cursor:pointer">关闭</button></div></div>';}
 function enterWish(){wm=true;am=false;uh();toast('💭 在地图上点击你想去的地方')}
 function createLoc(lat,lng,name,addr){var loc={id:uid(),name:name,address:addr||'',lat:lat,lng:lng,date:new Date().toISOString().slice(0,10),emoji:pickEmoji(name),photos:[],notes:'',memories:[],events:[],createdAt:Date.now()};locs.push(loc);save();renderMapMarkers();updateRoute();renderSList();spawnHearts(12);openDetail(loc.id);toast('✨ '+name+' 已点亮！')}
 function createWish(lat,lng,name,addr){wish.push({id:uid(),name:name,address:addr||'',lat:lat,lng:lng,createdAt:Date.now()});save();renderMapMarkers();renderSList();toast('💭 '+name+' 加入愿望清单！')}
