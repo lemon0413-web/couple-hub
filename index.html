@@ -353,7 +353,7 @@ function saveCloud(d){
 }
 function fetchCloud(){
   var x=new XMLHttpRequest();x.timeout=10000;
-  x.open('GET','https://raw.githubusercontent.com/'+GH_REPO+'/main/'+GH_FILE);
+  x.open('GET','https://cdn.jsdelivr.net/gh/'+GH_REPO+'@main/'+GH_FILE);
   x.onload=function(){
     if(x.status!==200)return;
     try{
