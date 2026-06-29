@@ -23,7 +23,7 @@
 .lock-btn{margin-top:12px;padding:10px 40px;border:none;border-radius:20px;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(232,135,155,0.3)}
 .lock-btn:hover{transform:scale(1.04)}.lock-err{color:#D4687C;font-size:11px;margin-top:8px;min-height:18px}
 .lock-hint{font-size:10px;color:#ccc;margin-top:16px}
-body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:#FFF5F0;color:#4A3040;height:100vh;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:#FFF5F0;color:#4A3040;height:100dvh;overflow:hidden}
 .topbar{position:fixed;top:0;left:0;right:0;z-index:1000;background:#fff;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:50px}
 .topbar .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
 .topbar .dot{width:8px;height:8px;border-radius:50%;margin-right:2px}
@@ -39,8 +39,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .topbar .tabs{overflow-x:auto;gap:0;-webkit-overflow-scrolling:touch}
 .topbar .tabs button{padding:6px 7px;font-size:15px;white-space:nowrap;flex-shrink:0}
 .topbar .tabs button em{display:none}
-.main{padding-top:44px}
-.side{display:none}
+.main{padding-top:44px;height:100dvh}
+.mwrap{min-width:100vw}.side{display:none}
+.page.show{display:block}.page-inner{overflow-y:auto}
 .page-inner{padding:12px 10px}
 .search{width:90%;max-width:340px}
 .search .box input{padding:8px 10px;font-size:14px}
@@ -65,7 +66,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .lock-input{width:200px;font-size:14px}
 .addbox{width:95vw !important;max-width:360px;padding:20px 16px}
 }
-.main{display:flex;height:100vh;padding-top:50px}
+.main{display:flex;height:100dvh;padding-top:50px}
 .page{display:none;flex:1;overflow-y:auto;overflow-x:hidden}
 .page.show{display:flex}
 .page-inner{flex:1;padding:16px 20px}
@@ -627,6 +628,7 @@ renderHome();
 renderBulletin();
 setDot('y');
 fetchCloud();
+setInterval(function(){fetchCloud()},30000);
 // Register PWA service worker for offline caching
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('data:application/javascript,'+encodeURIComponent(
