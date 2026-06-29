@@ -370,11 +370,68 @@ function toast(m){var e=document.createElement('div');e.className='toast';e.text
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function esa(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
-// ==================== CLOUD ====================
+// ==================== CLOUD (Supabase - may be blocked in China) ====================
 function saveCloud(d){fetch(SUPABASE_URL+'/rest/v1/couple_data',{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates'},body:JSON.stringify({couple_code:CODE,data:d,updated_at:new Date().toISOString()})}).catch(function(){})}
 function fetchCloud(){fetch(SUPABASE_URL+'/rest/v1/couple_data?couple_code=eq.'+CODE+'&select=data',{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}}).then(function(r){return r.json()}).then(function(rows){if(rows&&rows.length>0&&rows[0].data){var d=rows[0].data;var cl=d.locations||[];cl.forEach(function(l){if(!l.events)l.events=[];if(!l.memories)l.memories=[]});var cw=d.wishlist||[];var ca=d.anniversaries||[];var ct=(d.things&&d.things.length&&d.things[0].text)?d.things:null;var cle=d.letters||[];var cb=d.bulletins||[];var ids={};locs.forEach(function(l){ids[l.id]=true});cl.forEach(function(l){if(!ids[l.id]){locs.push(l);ids[l.id]=true}});ids={};wish.forEach(function(w){ids[w.id]=true});cw.forEach(function(w){if(!ids[w.id]){wish.push(w);ids[w.id]=true}});ids={};annis.forEach(function(a){ids[a.id]=true});ca.forEach(function(a){if(!ids[a.id]){annis.push(a);ids[a.id]=true}});ids={};letters.forEach(function(l){ids[l.id]=true});cle.forEach(function(l){if(!ids[l.id]){letters.push(l);ids[l.id]=true}});if(ct&&(!things||!things.length||!things[0].text)){things=ct};bulletins=cb.length>bulletins.length?cb:bulletins;cdPri=d.cdPrimary||cdPri;save();setDot('g');refreshAll();renderBulletin()}}).catch(function(){setDot('r')})}
 
 function setDot(c){var d=document.getElementById('cdot');d.className='dot '+c}
+
+// ==================== SHARE SYNC (works everywhere, no backend) ====================
+function generateShareCode(){
+  var d={locations:locs,wishlist:wish,anniversaries:annis,things:things,letters:letters,bulletins:bulletins,cdPrimary:cdPri};
+  var json=JSON.stringify(d);
+  // Compress by using a compact encoding
+  var code=btoa(unescape(encodeURIComponent(json)));
+  // Show modal with share options
+  var m=document.getElementById('modal');m.innerHTML='';
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:99999;display:flex;align-items:center;justify-content:center';
+  ov.onclick=function(e){if(e.target===ov)m.innerHTML=''};
+  var bx=document.createElement('div');
+  bx.style.cssText='background:#fff;border-radius:18px;padding:24px;width:380px;max-width:92vw;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto';
+  bx.onclick=function(e){e.stopPropagation()};
+  var h3=document.createElement('h3');h3.textContent='📤 分享数据';h3.style.cssText='font-size:16px;margin-bottom:8px';
+  var p=document.createElement('p');p.textContent='复制下面的链接发给对方，打开即自动导入';p.style.cssText='font-size:11px;color:#bbb;margin-bottom:12px';
+  var url=window.location.origin+window.location.pathname+'#import='+encodeURIComponent(code);
+  // Truncate if too long
+  var displayUrl=url;
+  if(url.length>60)displayUrl=url.substring(0,57)+'...';
+  var ta=document.createElement('textarea');
+  ta.value=url;ta.readOnly=true;ta.style.cssText='width:100%;height:60px;padding:8px;border:2px solid #eee;border-radius:10px;font-size:10px;font-family:monospace;resize:none;word-break:break-all;color:#4A3040;margin-bottom:12px';
+  ta.onclick=function(){ta.select();document.execCommand('copy');toast('📋 链接已复制！发送给对方即可')};
+  var cpBtn=document.createElement('button');
+  cpBtn.textContent='📋 复制链接';cpBtn.style.cssText='padding:10px 24px;background:linear-gradient(135deg,#F4ACB7,#E8879B);color:#fff;border:none;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:12px';
+  cpBtn.onclick=function(){ta.select();document.execCommand('copy');toast('📋 链接已复制！发给对方吧')};
+  var note=document.createElement('p');note.textContent='💡 数据通过链接安全传输，不经过任何服务器';note.style.cssText='font-size:10px;color:#ccc';
+  bx.appendChild(h3);bx.appendChild(p);bx.appendChild(ta);bx.appendChild(cpBtn);bx.appendChild(note);
+  ov.appendChild(bx);m.appendChild(ov);
+}
+function importFromHash(){
+  var hash=window.location.hash;
+  if(!hash||hash.indexOf('#import=')!==0)return;
+  try{
+    var code=decodeURIComponent(hash.substring(8));
+    var json=decodeURIComponent(escape(atob(code)));
+    var d=JSON.parse(json);
+    // Merge imported data
+    if(!confirm('检测到分享数据！\\n\\n地点:'+(d.locations||[]).length+' 个\\n纪念日:'+(d.anniversaries||[]).length+' 个\\n信件:'+(d.letters||[]).length+' 封\\n\\n是否导入？（会与你现有数据合并）'))return;
+    var ids={};
+    locs.forEach(function(l){ids[l.id]=true});
+    (d.locations||[]).forEach(function(l){if(!l.events)l.events=[];if(!l.memories)l.memories=[];if(!ids[l.id]){locs.push(l);ids[l.id]=true}});
+    ids={};wish.forEach(function(w){ids[w.id]=true});
+    (d.wishlist||[]).forEach(function(w){if(!ids[w.id]){wish.push(w);ids[w.id]=true}});
+    ids={};annis.forEach(function(a){ids[a.id]=true});
+    (d.anniversaries||[]).forEach(function(a){if(!ids[a.id]){annis.push(a);ids[a.id]=true}});
+    ids={};letters.forEach(function(l){ids[l.id]=true});
+    (d.letters||[]).forEach(function(l){if(!ids[l.id]){letters.push(l);ids[l.id]=true}});
+    if(d.things&&d.things.length&&d.things[0].text){var ti={};things.forEach(function(t){ti[t.text]=true});d.things.forEach(function(t){if(!ti[t.text]){things.push(t);ti[t.text]=true}})}
+    if(d.bulletins&&d.bulletins.length>bulletins.length)bulletins=d.bulletins;
+    cdPri=d.cdPrimary||cdPri;
+    save();refreshAll();toast('✅ 数据已导入并合并！');
+    // Clean URL
+    window.location.hash='';
+  }catch(e){toast('⚠️ 导入失败，链接可能不完整')}
+}
 
 // ==================== NAV ====================
 function go(p){cur=p;document.querySelectorAll('.page').forEach(function(e){e.classList.remove('show')});document.getElementById('p_'+p).classList.add('show');document.querySelectorAll('.tabs button').forEach(function(b){b.classList.remove('on')});var tabs='home,map,photos,timeline,things,anni,letters,stats'.split(',');var ti=tabs.indexOf(p);if(ti>=0)document.querySelectorAll('.tabs button')[ti].classList.add('on');if(p==='home')renderHome();if(p==='map'){setTimeout(function(){map&&map.invalidateSize()},200)};if(p==='photos')renderPhotos();if(p==='timeline')renderTL();if(p==='things')renderThings();if(p==='anni')renderAnni();if(p==='stats')renderStats();if(p==='letters')renderLetters()}
@@ -579,7 +636,7 @@ function deleteAnni(id){if(!confirm('确定删除吗？'))return;annis=annis.fil
 function closeModal(){document.getElementById('modal').innerHTML=''}
 
 // ==================== STATS ====================
-function renderStats(){var c=document.getElementById('sg');var tp=locs.reduce(function(s,l){return s+l.photos.length},0);var tm=locs.reduce(function(s,l){return s+l.memories.length},0);var dc=things.filter(function(t){return t.done}).length;var td=0;if(annis.length>0){var f=new Date(annis[0].date);f.setHours(0,0,0,0);var n=new Date();n.setHours(0,0,0,0);td=Math.max(0,Math.floor((n-f)/86400000))}var y=Math.floor(td/365),m=Math.floor((td%365)/30),w=Math.floor(td/7);var h='<div class="hd"><h2>📊 恋爱统计</h2></div><div class="banner"><div class="bg">💕</div><div style="font-size:10px;color:#bbb;margin-bottom:4px">在一起的时光</div><div class="bn">'+td+'</div><div style="font-size:11px;color:#bbb">天</div><div class="cols"><div><b>'+y+'</b>年</div><div><b>'+m+'</b>个月</div><div><b>'+w+'</b>周</div><div><b>'+td+'</b>天</div></div></div><div class="statsgrid"><div class="statsc"><div class="si">🗺️</div><div class="sn">'+locs.length+'</div><div class="sl">点亮的地方</div></div><div class="statsc"><div class="si">📸</div><div class="sn">'+tp+'</div><div class="sl">照片</div></div><div class="statsc"><div class="si">💬</div><div class="sn">'+tm+'</div><div class="sl">甜蜜回忆</div></div><div class="statsc"><div class="si">✅</div><div class="sn">'+dc+'/'+things.length+'</div><div class="sl">完成的小事</div></div><div class="statsc"><div class="si">💝</div><div class="sn">'+annis.length+'</div><div class="sl">纪念日</div></div><div class="statsc"><div class="si">💌</div><div class="sn">'+letters.length+'</div><div class="sl">信件</div></div></div>';if(locs.length>0){h+='<div style="background:#fff;border:1px solid #f0f0f0;border-radius:12px;padding:14px;margin-bottom:10px"><h4 style="font-size:11px;color:#E8879B;margin-bottom:8px">🏙️ 一起去过的地方</h4><div class="tags">';locs.forEach(function(loc){h+='<span onclick="go(\'map\');setTimeout(function(){openDetail(\''+loc.id+'\')},200)">'+(loc.emoji||'📍')+' '+esc(loc.name)+'</span>'});h+='</div></div>'}h+='<div style="text-align:center;padding:10px 0 20px"><button onclick="exportData()" style="padding:8px 20px;background:#fff;border:1px solid #eee;border-radius:18px;font-size:11px;color:#999;cursor:pointer;font-family:inherit">📦 导出数据</button></div>';c.innerHTML=h}
+function renderStats(){var c=document.getElementById('sg');var tp=locs.reduce(function(s,l){return s+l.photos.length},0);var tm=locs.reduce(function(s,l){return s+l.memories.length},0);var dc=things.filter(function(t){return t.done}).length;var td=0;if(annis.length>0){var f=new Date(annis[0].date);f.setHours(0,0,0,0);var n=new Date();n.setHours(0,0,0,0);td=Math.max(0,Math.floor((n-f)/86400000))}var y=Math.floor(td/365),m=Math.floor((td%365)/30),w=Math.floor(td/7);var h='<div class="hd"><h2>📊 恋爱统计</h2></div><div class="banner"><div class="bg">💕</div><div style="font-size:10px;color:#bbb;margin-bottom:4px">在一起的时光</div><div class="bn">'+td+'</div><div style="font-size:11px;color:#bbb">天</div><div class="cols"><div><b>'+y+'</b>年</div><div><b>'+m+'</b>个月</div><div><b>'+w+'</b>周</div><div><b>'+td+'</b>天</div></div></div><div class="statsgrid"><div class="statsc"><div class="si">🗺️</div><div class="sn">'+locs.length+'</div><div class="sl">点亮的地方</div></div><div class="statsc"><div class="si">📸</div><div class="sn">'+tp+'</div><div class="sl">照片</div></div><div class="statsc"><div class="si">💬</div><div class="sn">'+tm+'</div><div class="sl">甜蜜回忆</div></div><div class="statsc"><div class="si">✅</div><div class="sn">'+dc+'/'+things.length+'</div><div class="sl">完成的小事</div></div><div class="statsc"><div class="si">💝</div><div class="sn">'+annis.length+'</div><div class="sl">纪念日</div></div><div class="statsc"><div class="si">💌</div><div class="sn">'+letters.length+'</div><div class="sl">信件</div></div></div>';if(locs.length>0){h+='<div style="background:#fff;border:1px solid #f0f0f0;border-radius:12px;padding:14px;margin-bottom:10px"><h4 style="font-size:11px;color:#E8879B;margin-bottom:8px">🏙️ 一起去过的地方</h4><div class="tags">';locs.forEach(function(loc){h+='<span onclick="go(\'map\');setTimeout(function(){openDetail(\''+loc.id+'\')},200)">'+(loc.emoji||'📍')+' '+esc(loc.name)+'</span>'});h+='</div></div>'}h+='<div style="text-align:center;padding:10px 0 20px"><button onclick="generateShareCode()" style="padding:8px 20px;background:#fff;border:1px solid #eee;border-radius:18px;font-size:11px;color:#999;cursor:pointer;font-family:inherit">📤 分享数据给TA</button></div>';c.innerHTML=h}
 function exportData(){var eo={locations:locs,wishlist:wish,anniversaries:annis,things:things,letters:letters,exportDate:new Date().toISOString()};var blob=new Blob([JSON.stringify(eo,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='couple-hub-'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('📦 已导出！')}
 
 // ==================== LETTERS ====================
@@ -656,11 +713,11 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(document
 load();
 initMap();
 initLock();
+importFromHash();
 renderHome();
 renderBulletin();
 setDot('y');
 fetchCloud();
-setInterval(function(){fetchCloud()},30000);
 // Register PWA service worker for offline caching
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('data:application/javascript,'+encodeURIComponent(
