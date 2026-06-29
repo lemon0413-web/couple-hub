@@ -28,11 +28,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .topbar .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
 .topbar .dot{width:8px;height:8px;border-radius:50%;margin-right:2px}
 .topbar .dot.g{background:#4CAF50}.topbar .dot.r{background:#ccc}.topbar .dot.y{background:#FF9800}
-.topbar .tabs{display:flex;gap:0}
+.topbar .tabs{display:flex;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.topbar .tabs::-webkit-scrollbar{display:none}
 .topbar .tabs button{padding:7px 12px;border:none;background:none;border-radius:16px;font-size:12px;font-family:inherit;color:#888;cursor:pointer;transition:all 0.15s}
 .topbar .tabs button:hover{color:#E8879B;background:rgba(244,172,183,0.06)}
 .topbar .tabs button.on{color:#fff;background:linear-gradient(135deg,#F4ACB7,#E8879B);font-weight:600}
-.topbar .tabs button em{font-style:normal}@media(max-width:768px){.topbar .tabs button em{display:none}.topbar .tabs button{padding:7px 8px;font-size:16px}}
+.topbar .tabs button em{font-style:normal}@media(max-width:768px){
+.topbar{padding:0 6px;height:44px}
+.topbar .brand{font-size:13px;gap:4px}
+.topbar .brand span{font-size:12px}
+.topbar .tabs{overflow-x:auto;gap:0;-webkit-overflow-scrolling:touch}
+.topbar .tabs button{padding:6px 7px;font-size:15px;white-space:nowrap;flex-shrink:0}
+.topbar .tabs button em{display:none}
+.main{padding-top:44px}
+.side{display:none}
+.page-inner{padding:12px 10px}
+.search{width:90%;max-width:340px}
+.search .box input{padding:8px 10px;font-size:14px}
+.tools{bottom:120px;right:6px;gap:4px}
+.tools button{width:32px;height:32px;font-size:13px}
+.hint{bottom:36px;font-size:10px;padding:8px 14px}
+.big-add-btn{bottom:76px;padding:10px 22px;font-size:14px}
+.big-add-btn{left:50%}
+.statsgrid{grid-template-columns:repeat(3,1fr)}
+.annigrid{grid-template-columns:repeat(2,1fr)}
+.thingsgrid{grid-template-columns:1fr}
+.banner{padding:16px}
+.banner .bn{font-size:34px}
+.banner .cols{gap:12px}.banner .cols div{min-width:50px}
+.banner .cols b{font-size:14px}
+.hd h2{font-size:15px}
+.mdl{width:90% !important;max-width:340px}
+.dpanel{width:95vw !important;max-height:90vh}
+.pgrid{grid-template-columns:repeat(3,1fr)}
+.lock-box{padding:30px 20px}
+.lock-icon{font-size:48px}
+.lock-input{width:200px;font-size:14px}
+.addbox{width:95vw !important;max-width:360px;padding:20px 16px}
+}
 .main{display:flex;height:100vh;padding-top:50px}
 .page{display:none;flex:1;overflow-y:auto;overflow-x:hidden}
 .page.show{display:flex}
